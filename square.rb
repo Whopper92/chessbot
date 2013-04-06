@@ -9,8 +9,16 @@ require 'move.rb'
 #[{move:(toSq,fromSq)},{move:(toSq,fromSq)},{move:(toSq,fromSq)} ]
 class Square
 
-  # x and y board coordinates
-  @xPos # range: 0..4
-  @yPos # range: 0..5
+  def initialize(x, y)
+    @xPos = x
+    @yPos = y
+  end
 
+  def getX
+    "#{@xPos}"
+  end
+
+  def getY
+    "#{@yPos}"
+  end
 end

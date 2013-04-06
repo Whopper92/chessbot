@@ -126,20 +126,40 @@ class State
     end
   end
 
-  def moveScan(xInit, yInit, dx, dy, stopShort, capture)
+  def moveScan(x0, y0, dx, dy, stopShort, capture)
   # This method is called many times by the moveList function,
   # which passes in every combination of movement directions for
   # a given piece for a given square position, many times over.
-  x = xInit
-  y = yInit
-  c = colorOf(x,y)
-  puts c
-
+    x = x0
+    y = y0
+    c = colorOf(x,y)
+    moves = []
+    loop do
+      x += dx
+      y += dy
+      break if (x < 0 or x > 4 or y < 0 or y > 5)
+      if @xyGrid[y][x].to_s != '.'
+        if @xyGrid[y][x].colorOf == c  # Same color, so the move is invalid
+          break
+        end
+        if capture == false
+          break                        # We don't want to take this capture
+        else
+          stopShort = true             # the capture move is valid
+        end
+      end
+      validMove = Move.new(Square.new(x0, y0), Square.new(x, y))
+      testMove = Move.new(Square.new(2, 2), Square.new(3, 3))
+      moves << validMove
+      moves << testMove
+      break if stopShort == true
+      return moves
+    end
   end
 
   def moveList
   # Scans every position of the entire board to determine every valid
   # move in the current state
-    self.moveScan(1, 0, 0, 1, false, true)
+    moveList = self.moveScan(3, 1, 0, 1, false, true)
   end
 end

@@ -7,12 +7,12 @@ require 'square.rb'
 # a single move. A large array will hold many of them in state.
 class Move
 
-  # Theory: These fields will hold objects of type square
-  @fromSquare
-  @toSquare
-
-  def initialize(toSq, fromSq)
+  def initialize(fromSq, toSq)
     @fromSquare = fromSq
-    @toSquare = toSq
+    @toSquare   = toSq
+  end
+
+  def to_s
+    return "#{@fromSquare.getX},#{@fromSquare.getY}-#{@toSquare.getX},#{@toSquare.getY}"
   end
 end
