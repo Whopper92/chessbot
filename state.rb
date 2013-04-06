@@ -1,6 +1,7 @@
 #! /usr/bin/ruby
 
-require 'open3'
+require 'square.rb'
+require 'move.rb'
 
 class State
 
@@ -10,26 +11,24 @@ class State
     self.newBoard
   end
 
-  # Method: printBoard
-  # Print out a formatted version of the current state of the board
   def printBoard
+  # Print out a formatted version of the current state of the board
 
-    board =  "#{@board[20..24]}\n"\
-             "#{@board[29..33]}\n"\
-             "#{@board[38..42]}\n"\
-             "#{@board[47..51]}\n"\
-             "#{@board[56..60]}\n"\
-             "#{@board[65..69]}\n"
-
+    board =  "#{@board[0 .. 4]}\n"\
+             "#{@board[5 .. 9]}\n"\
+             "#{@board[10..14]}\n"\
+             "#{@board[15..19]}\n"\
+             "#{@board[20..24]}\n"\
+             "#{@board[25..29]}\n"
      puts "#{@turnCount} #{@onMove}"
      puts board
   end
 
-  # Method: getState
+  def getState
   # Reads in a full string representation of the board
   # Note: It is unclear as to where this board will come from, so this method
   # implements the read as if the data were in a file
-  def getState
+
     @newBoard  = []
 
     File.open('test_state.txt').each do |line|
@@ -39,26 +38,28 @@ class State
     updateState(@newBoard)
   end
 
-  # Method: updateBoard
+  def updateState(curBoard)
   # Takes string from request called in getState to update the current board
   # based on a full string representation of the opponent's board
-    def updateState(curBoard)
-        @turnCount     = curBoard[0][0]
-        @onMove        = curBoard[0][2]
-        @board[20..24] = curBoard[1][0..4]
-        @board[29..33] = curBoard[2][0..4]
-        @board[38..42] = curBoard[3][0..4]
-        @board[47..51] = curBoard[4][0..4]
-        @board[56..60] = curBoard[5][0..4]
-        @board[65..69] = curBoard[6][0..4]
+
+    @turnCount = curBoard[0][0]
+    @onMove    = curBoard[0][2]
+
+    x = 0
+    y = 1
+    while x < 25 do
+      @board[x .. x+4] = curBoard[y][0..4]
+      x += 5
+      y += 1
     end
+    assignRows
+  end
 
-  # Method: newBoard
-  # Reset all piece locations to create fresh board
   def newBoard
+  # Reset all piece locations to create fresh board
 
-    @onMove    = "W"
-    @turnCount = 0
+    @onMove          = "W"
+    @turnCount       = 0
     @whiteKingSym    = 'K'
     @whiteQueenSym   = 'Q'
     @whiteBishopSym  = 'B'
@@ -73,37 +74,72 @@ class State
     @blackRookSym    = 'r'
     @blackPawnSym    = 'p'
 
-    # The board consists of 30 valid squares in the ranges specified.
-    # The rest of the squares comprise a double layer of 'invalid'
-    # squares to more efficiently prevent out-of-bounds moves
-    allSquares = 89
+    allSquares = 30
     i = 0
-
     while i < allSquares do
       case i
-        when 20..24:
-          @board << @blackKingSym if i == 20
-          @board << @blackQueenSym if i == 21
-          @board << @blackBishopSym if i == 22
-          @board << @blackKnightSym if i == 23
-          @board << @blackRookSym if i == 24
-        when 29..33:
+        when 0..4:
+          @board << @blackKingSym if i == 0
+          @board << @blackQueenSym if i == 1
+          @board << @blackBishopSym if i == 2
+          @board << @blackKnightSym if i == 3
+          @board << @blackRookSym if i == 4
+        when 5..9:
           @board << @blackPawnSym
-        when 38..42:
+        when 10..14:
           @board << '.'
-        when 47..51: 
+        when 15..19:
           @board << '.'
-        when 56..60:
+        when 20..24:
           @board <<  @whitePawnSym
-        when 65..69:
-          @board << @whiteRookSym if i == 65
-          @board << @whiteKnightSym if i == 66
-          @board << @whiteBishopSym if i == 67
-          @board << @whiteQueenSym if i == 68
-          @board << @whiteKingSym if i == 69
-        else @board << 'x' # An invalid square
+        when 25..29:
+          @board << @whiteRookSym if i == 25
+          @board << @whiteKnightSym if i == 26
+          @board << @whiteBishopSym if i == 27
+          @board << @whiteQueenSym if i == 28
+          @board << @whiteKingSym if i == 29
       end
       i += 1
     end
+    assignRows
+  end
+
+  def assignRows
+  # Assign key indexes from the board array to convert (x,y) coordinates to
+  # array indexes for quick lookup. To easily map with the (x,y) coordinate
+  # system, the rows are actually the board array in reverse
+    @xyGrid = []
+    @xyGrid << @board[25..29]
+    @xyGrid << @board[20..24]
+    @xyGrid << @board[15..19]
+    @xyGrid << @board[10..14]
+    @xyGrid << @board[5 .. 9]
+    @xyGrid << @board[0 .. 4]
+  end
+
+  def colorOf(x, y)
+  # Determine the color a piece on a given square
+    if ((@xyGrid[y][x]).to_s) == ((@xyGrid[y][x]).to_s).upcase
+      return 'W'
+    else
+      return 'B'
+    end
+  end
+
+  def moveScan(xInit, yInit, dx, dy, stopShort, capture)
+  # This method is called many times by the moveList function,
+  # which passes in every combination of movement directions for
+  # a given piece for a given square position, many times over.
+  x = xInit
+  y = yInit
+  c = colorOf(x,y)
+  puts c
+
+  end
+
+  def moveList
+  # Scans every position of the entire board to determine every valid
+  # move in the current state
+    self.moveScan(1, 0, 0, 1, false, true)
   end
 end
