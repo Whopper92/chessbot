@@ -195,8 +195,8 @@ class State
           dy = -dy
         end
         if p == 'B'
-          dx = 1
-          dy = 1
+          dx        = 1
+          dy        = 1
           stopShort = false
           for i in 1..4
             temp = moveScan(x, y, dx, dy, stopShort, capture)
@@ -208,7 +208,29 @@ class State
           end
         end
 
-      when 'K'
+      when 'N'
+        dx        = 1
+        dy        = 2
+        stopShort = true
+        for i in 1..4
+          temp = moveScan(x, y, dx, dy, stopShort, capture)
+          temp.each do |a|
+            @moveList << a if a != '!'
+          end
+          dx,dy = dy,dx
+          dy = -dy
+        end
+
+        dx = -1
+        dy - 2
+        for i in 1..4
+          temp = moveScan(x, y, dx, dy, stopShort, capture)
+          temp.each do |a|
+            @moveList << a if a != '!'
+          end
+          dx,dy = dy,dx
+          dy = -dy
+        end
 
       when 'P'
     end
