@@ -168,8 +168,8 @@ class State
   # GRID SYSTEM: rows are y values, starting at 0 from the bottom
   # Columns are x values, starting at 0 from the left
   # Finds every valid move for a given piece
-    p        = @xyGrid[y][x].upcase
-    temp     = []
+    p          = @xyGrid[y][x].upcase
+    foundMoves = []
     case p
       when 'K', 'Q'
         for dx in -1..1
@@ -179,10 +179,12 @@ class State
             capture = true
             getMv = moveScan(x, y, dx, dy, stopShort, capture)
             getMv.each do |a|
-              @moveList << a if a != '!'
+              foundMoves << a if a != '!'
             end
           end
         end
+        return foundMoves
+
       when 'R', 'B'
         dx = 1
         dy = 0
@@ -191,7 +193,7 @@ class State
         for i in 1..4
           getMv = moveScan(x, y, dx, dy, stopShort, capture)
           getMv.each do |a|
-            @moveList << a if a != '!'
+            foundMoves << a if a != '!'
           end
           dx,dy = dy,dx
           dy = -dy
@@ -203,12 +205,13 @@ class State
           for i in 1..4
             getMv = moveScan(x, y, dx, dy, stopShort, capture)
             getMv.each do |a|
-              @moveList << a if a != '!'
+              foundMoves << a if a != '!'
             end
             dx,dy = dy,dx
             dy = -dy
           end
         end
+        return foundMoves
 
       when 'N'
         dx        = 1
@@ -217,7 +220,7 @@ class State
         for i in 1..4
           getMv = moveScan(x, y, dx, dy, stopShort, capture)
           getMv.each do |a|
-            @moveList << a if a != '!'
+            foundMoves << a if a != '!'
           end
           dx,dy = dy,dx
           dy = -dy
@@ -228,14 +231,15 @@ class State
         for i in 1..4
           getMv = moveScan(x, y, dx, dy, stopShort, capture)
           getMv.each do |a|
-            @moveList << a if a != '!'
+            foundMoves << a if a != '!'
           end
           dx,dy = dy,dx
           dy = -dy
         end
+        return foundMoves
 
       when 'P'
-        checkList = []
+        checkList  = []
         @xyGrid[y][x].upcase == @xyGrid[y][x]? dir = 1 : dir = -1
         stopShort = true
         getMv = moveScan(x, y, -1, dir, stopShort, capture)  # See if a capture diag-left exists
@@ -243,31 +247,42 @@ class State
           checkList << a if a != '!'
         end
         if checkList.length == 1 and checkList[0].isCapture == true
-          @moveList << checkList
-          checkList = []
+          foundMoves << checkList
         end
+        checkList = []
 
         getMv = moveScan(x, y, 1, dir, stopShort, capture)  # Now see if a capture diag-right exists
         getMv.each do |a|
           checkList << a if a != '!'
         end
         if checkList.length == 1 and checkList[0].isCapture == true
-          @moveList << checkList
-          checkList = []
+          foundMoves << checkList
         end
+        checkList = []
 
         capture = false                                    # Lastly, see if the pawn can move forward
         getMv = moveScan(x, y, 0, dir, stopShort, capture)
         getMv.each do |a|
-          @moveList << a if a != '!'
+          foundMoves << a if a != '!'
         end
-
+        return foundMoves
     end
   end
 
-  def printMoves
-    @moveList.each do |x|   # For testing
-      puts x.to_s
+  def findAllMoves
+    moves     = []
+    @allMoves = []
+
+    for y in 0..5
+      for x in 0..4
+        moves << moveList(x, y)
+      end
     end
+
+    moves.each do |a|
+      @allMoves << a if a != [] and a != nil
+    end
+
+    puts @allMoves
   end
 end

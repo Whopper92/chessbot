@@ -1,7 +1,8 @@
-3 B
-kqbn.
-p.ppr
-.pP.p
-PPp.P
-R..P.
-.NBQK
+0 W
+kq.nr
+.bppp
+pp...
+..P.P
+.P.P.
+RNBQK
+
