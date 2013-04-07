@@ -22,6 +22,16 @@ class Move
     col + row.to_s
   end
 
+  # Convert from move string coordinates to (x,y) coordinates
+  # Accepts 'from' or 'to' strings to decode the desired square
+  def decode(step)
+    if step == 'from'
+      [@fromSquare.xPos, @fromSquare.yPos]
+    elsif step == 'to'
+      [@toSquare.xPos, @toSquare.yPos]
+    end
+  end
+
   def to_s
     from = toChessMv(@fromSquare.xPos, @fromSquare.yPos)
     to   = toChessMv(@toSquare.xPos, @toSquare.yPos)

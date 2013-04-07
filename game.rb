@@ -11,3 +11,7 @@ require 'move.rb'
   board.printBoard
   puts "\n"
   board.findAllMoves
+
+  testMove = Move.new(Square.new(4,0), Square.new(4,1), false)
+#  testMove = Move.new(Square.new(1,3), Square.new(2,2), false)
+  board.move(testMove)

@@ -23,7 +23,6 @@ class State
     end
   end
 
-
   def newBoard
   # Reset all piece locations to create fresh board
 
@@ -55,9 +54,7 @@ class State
           @board << @blackRookSym if i == 4
         when 5..9:
           @board << @blackPawnSym
-        when 10..14:
-          @board << '.'
-        when 15..19:
+        when 10..19:
           @board << '.'
         when 20..24:
           @board <<  @whitePawnSym
@@ -116,6 +113,51 @@ class State
     @xyGrid << @board[0 .. 4]
   end
 
+  def updateBoard(x0, y0, x, y)
+  # Update the board based on a single valid move
+  # First, convert from the grid system back to the 1D array
+    fromIndex = y0 * 5 + x0
+    toIndex   = y * 5 + x
+    puts toIndex
+    puts @board.inspect
+    toPiece   = @board[toIndex]
+    puts toPiece
+     # Now update both positions on the board array
+    
+  end
+
+  def move(aMove)
+  # Accepts an argument of type move. If the move is valid, this method
+  # returns a new state. Invalid moves result in an exception
+  # Psuedocode:
+=begin
+  1) Is this move the same as a move in my list of all valid moves?
+  2) Is the piece in the fromSq the same color as the color onMove?
+  3)  If yes, replace the fromSq with a '.' and replace the toSq with the piece from fromSq
+  4)  If no, throw exception
+=end
+    isValid = false
+    @allMoves.each do |x|
+      x.each do |y|
+        isValid = true if y.to_s[/#{aMove}/]
+      end
+    end
+    if isValid == true
+
+      pos = aMove.decode('from')
+      to  = aMove.decode('to')
+
+      if @xyGrid[pos[1]][pos[0]].upcase == @xyGrid[pos[1]][pos[0]] and @onMove == 'W' # Valid white move
+        updateBoard(pos[0], pos[1], to[0], to[1])
+      elsif @xyGrid[pos[1]][pos[0]].upcase != @xyGrid[pos[1]][pos[0]] and @onMove == 'B' # Valid black move
+        updateBoard(pos[0], pos[1], to[0], to[1])
+      else # Player moving out of order - throw exception
+
+      end
+    end
+
+
+  end
 
   def moveScan(x0, y0, dx, dy, stopShort, capture)
   # This method is called many times by the moveList method,
@@ -282,7 +324,7 @@ class State
     moves.each do |a|
       @allMoves << a if a != [] and a != nil
     end
-    puts @allMoves
+#    puts @allMoves
   end
 
   def colorOf(x, y)
