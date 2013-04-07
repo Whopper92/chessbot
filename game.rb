@@ -12,7 +12,8 @@ require 'move.rb'
   puts "\n"
   board.findAllMoves
 
-  testMove = Move.new(Square.new(4,0), Square.new(4,1), false)
+#  testMove = Move.new(Square.new(4,0), Square.new(4,1), false)
 #  testMove = Move.new(Square.new(1,3), Square.new(2,2), false)
+#  testMove = Move.new(Square.new(3,0), Square.new(3,1), false)
   newState = board.move(testMove)
   board.printBoard

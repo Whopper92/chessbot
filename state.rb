@@ -2,6 +2,7 @@
 
 require 'square.rb'
 require 'move.rb'
+require 'exceptions.rb'
 
 class State
 
@@ -96,33 +97,35 @@ class State
   def move(aMove)
   # Accepts an argument of type move. If the move is valid, this method
   # returns a new state. Invalid moves result in an exception
-  # Psuedocode:
-=begin
-  1) Is this move the same as a move in my list of all valid moves?
-  2) Is the piece in the fromSq the same color as the color onMove?
-  3)  If yes, replace the fromSq with a '.' and replace the toSq with the piece from fromSq
-  4)  If no, throw exception
-=end
     isValid = false
     @allMoves.each do |x|
       x.each do |y|
         isValid = true if y.to_s[/#{aMove}/]
       end
     end
-    if isValid == true
+    begin
+      if isValid == true
 
-      pos = aMove.decode('from')
-      to  = aMove.decode('to')
+        pos = aMove.decode('from')
+        to  = aMove.decode('to')
 
-      if @board[pos[1]][pos[0]].upcase == @board[pos[1]][pos[0]] and @onMove == 'W' # Valid white move
-        updateBoard(pos[0], pos[1], to[0], to[1])
-      elsif @board[pos[1]][pos[0]].upcase != @board[pos[1]][pos[0]] and @onMove == 'B' # Valid black move
-        updateBoard(pos[0], pos[1], to[0], to[1])
-      else # Player moving out of order - throw exception
-
+        if @board[pos[1]][pos[0]].upcase == @board[pos[1]][pos[0]] and @onMove == 'W' # Valid white move
+          updateBoard(pos[0], pos[1], to[0], to[1])
+        elsif @board[pos[1]][pos[0]].upcase != @board[pos[1]][pos[0]] and @onMove == 'B' # Valid black move
+          updateBoard(pos[0], pos[1], to[0], to[1])
+        else # Player moving out of order - throw exception
+          raise WrongPlayerError
+        end
+      else # an invalid move
+        raise InvalidMoveError
       end
-    end
 
+      rescue WrongPlayerError => e
+       puts "Encountered a move from the wrong player. Ignoring and maintaining current state."
+
+      rescue InvalidMoveError => e
+        puts "Encountered an invalid move. Ignoring and maintaining current state."
+    end
 
   end
 
@@ -307,3 +310,4 @@ class State
     x > -1 and x < 5 and y > -1 and y < 6
   end
 end
+
