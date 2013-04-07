@@ -138,6 +138,7 @@ class State
     moves     = []
     validMove = []
     invalid   = ['!']
+    isCap     = false
     loop do
       x += dx
       y += dy
@@ -148,9 +149,10 @@ class State
           break                        # We don't want to take this capture
         else
           stopShort = true             # the capture move is valid
+          isCap     = true
         end
       end
-      validMove = Move.new(Square.new(x0, y0), Square.new(x, y))
+      validMove = Move.new(Square.new(x0, y0), Square.new(x, y), isCap)
       moves << validMove
       break if stopShort == true
     end
@@ -175,8 +177,8 @@ class State
             next if dx == 0 and dy == 0
             p == 'K' ? stopShort = true : stopShort = false
             capture = true
-            temp = moveScan(x, y, dx, dy, stopShort, capture)
-            temp.each do |a|
+            getMv = moveScan(x, y, dx, dy, stopShort, capture)
+            getMv.each do |a|
               @moveList << a if a != '!'
             end
           end
@@ -187,8 +189,8 @@ class State
         p == 'B' ? stopShort = true : stopShort = false
         capture = true
         for i in 1..4
-          temp = moveScan(x, y, dx, dy, stopShort, capture)
-          temp.each do |a|
+          getMv = moveScan(x, y, dx, dy, stopShort, capture)
+          getMv.each do |a|
             @moveList << a if a != '!'
           end
           dx,dy = dy,dx
@@ -199,8 +201,8 @@ class State
           dy        = 1
           stopShort = false
           for i in 1..4
-            temp = moveScan(x, y, dx, dy, stopShort, capture)
-            temp.each do |a|
+            getMv = moveScan(x, y, dx, dy, stopShort, capture)
+            getMv.each do |a|
               @moveList << a if a != '!'
             end
             dx,dy = dy,dx
@@ -213,8 +215,8 @@ class State
         dy        = 2
         stopShort = true
         for i in 1..4
-          temp = moveScan(x, y, dx, dy, stopShort, capture)
-          temp.each do |a|
+          getMv = moveScan(x, y, dx, dy, stopShort, capture)
+          getMv.each do |a|
             @moveList << a if a != '!'
           end
           dx,dy = dy,dx
@@ -224,8 +226,8 @@ class State
         dx = -1
         dy - 2
         for i in 1..4
-          temp = moveScan(x, y, dx, dy, stopShort, capture)
-          temp.each do |a|
+          getMv = moveScan(x, y, dx, dy, stopShort, capture)
+          getMv.each do |a|
             @moveList << a if a != '!'
           end
           dx,dy = dy,dx
@@ -233,6 +235,33 @@ class State
         end
 
       when 'P'
+        checkList = []
+        @xyGrid[y][x].upcase == @xyGrid[y][x]? dir = 1 : dir = -1
+        stopShort = true
+        getMv = moveScan(x, y, -1, dir, stopShort, capture)  # See if a capture diag-left exists
+        getMv.each do |a|
+          checkList << a if a != '!'
+        end
+        if checkList.length == 1 and checkList[0].isCapture == true
+          @moveList << checkList
+          checkList = []
+        end
+
+        getMv = moveScan(x, y, 1, dir, stopShort, capture)  # Now see if a capture diag-right exists
+        getMv.each do |a|
+          checkList << a if a != '!'
+        end
+        if checkList.length == 1 and checkList[0].isCapture == true
+          @moveList << checkList
+          checkList = []
+        end
+
+        capture = false                                    # Lastly, see if the pawn can move forward
+        getMv = moveScan(x, y, 0, dir, stopShort, capture)
+        getMv.each do |a|
+          @moveList << a if a != '!'
+        end
+
     end
   end
 

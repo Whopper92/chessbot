@@ -20,4 +20,5 @@ require 'move.rb'
 #  board.moveList(2,5)
 #  board.moveList(1,0)
 #  board.moveList(3,5)
+  board.moveList(3,4)
   board.printMoves

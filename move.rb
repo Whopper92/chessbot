@@ -7,9 +7,12 @@ require 'square.rb'
 # a single move. A large array will hold many of them in state.
 class Move
 
-  def initialize(fromSq, toSq)
+  attr_reader :isCapture
+
+  def initialize(fromSq, toSq, isCap)
     @fromSquare = fromSq
     @toSquare   = toSq
+    @isCapture  = isCap
   end
 
   # Convert from (x,y) coordinates to move string coordinates
