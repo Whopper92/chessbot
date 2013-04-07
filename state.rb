@@ -7,7 +7,8 @@ class State
 
   def initialize
     @maxTurns = 80
-    @board = [] # The board array
+    @board    = [] # The board array
+    @moveList = [] # All moves valid from this state
     self.newBoard
   end
 
@@ -28,7 +29,6 @@ class State
   # implements the read as if the data were in a file
 
     @newBoard  = []
-
     File.open('test_state.txt').each do |line|
       @newBoard << line[0...-1].split('')
     end
@@ -125,7 +125,7 @@ class State
   end
 
   def inBounds?(x, y)
-    x > 0 and x < 5 and y > 0 and y < 6
+    x > -1 and x < 5 and y > 0 and y < 6
   end
 
   def moveScan(x0, y0, dx, dy, stopShort, capture)
@@ -135,13 +135,13 @@ class State
     x = x0
     y = y0
     c = colorOf(x,y)
-    moves   = []
-    invalid = ['!']
+    moves     = []
+    validMove = []
+    invalid   = ['!']
     loop do
       x += dx
       y += dy
       break if not inBounds?(x, y)
-
       if @xyGrid[y][x].to_s != '.'
         break if colorOf(x, y) == c  # Same color, so the move is invalid
         if capture == false
@@ -166,9 +166,8 @@ class State
   # GRID SYSTEM: rows are y values, starting at 0 from the bottom
   # Columns are x values, starting at 0 from the left
   # Finds every valid move for a given piece
-    p = @xyGrid[y][x].upcase
-    moveList = []
-    temp  = []
+    p        = @xyGrid[y][x].upcase
+    temp     = []
     case p
       when 'K', 'Q'
         for dx in -1..1
@@ -176,21 +175,21 @@ class State
             next if dx == 0 and dy == 0
             p == 'K' ? stopShort = true : stopShort = false
             capture = true
-            temp << moveScan(x, y, dx, dy, stopShort, capture)
+            temp = moveScan(x, y, dx, dy, stopShort, capture)
+            temp.each do |a|
+              @moveList << a if a != '!'
+            end
           end
-        end
-        temp.each do |x|
-          moveList << x if x != ['!']
         end
       when 'R', 'B'
 
       when 'K'
 
       when 'P'
-
     end
-    moveList.each do |x|   # For testing
+    @moveList.each do |x|   # For testing
       puts x.to_s
     end
+    puts "\n\n"
   end
 end

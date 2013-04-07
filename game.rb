@@ -11,3 +11,4 @@ require 'move.rb'
   board.printBoard
   puts "\n"
   board.moveList(4,0)
+  board.moveList(3,0)
