@@ -22,7 +22,7 @@ class Move
     col + row.to_s
   end
 
-  # Convert from move string coordinates to (x,y) coordinates
+  # Return (x,y) coordinates from this move object
   # Accepts 'from' or 'to' strings to decode the desired square
   def decode(step)
     if step == 'from'

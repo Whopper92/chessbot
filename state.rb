@@ -10,6 +10,7 @@ class State
     @maxTurns = 80
     @moveList = [] # All moves valid from this state
     self.newBoard
+    self.findAllMoves
   end
 
   def printBoard
@@ -82,6 +83,7 @@ class State
     y += 1
     z -= 1
     end
+    self.findAllMoves # Update valid move list
   end
 
   def updateBoard(x0, y0, x, y)
@@ -105,14 +107,15 @@ class State
     end
     begin
       if isValid == true
-
         pos = aMove.decode('from')
         to  = aMove.decode('to')
 
-        if @board[pos[1]][pos[0]].upcase == @board[pos[1]][pos[0]] and @onMove == 'W' # Valid white move
-          updateBoard(pos[0], pos[1], to[0], to[1])
-        elsif @board[pos[1]][pos[0]].upcase != @board[pos[1]][pos[0]] and @onMove == 'B' # Valid black move
-          updateBoard(pos[0], pos[1], to[0], to[1])
+        if (@board[pos[1]][pos[0]].upcase == @board[pos[1]][pos[0]] and @onMove == 'W') or # Valid white move
+           (@board[pos[1]][pos[0]].upcase != @board[pos[1]][pos[0]] and @onMove == 'B') # Valid black move
+              updateBoard(pos[0], pos[1], to[0], to[1])
+              findAllMoves  # update the valid move list
+              @turnCount = @turnCount.to_i + 1
+              @onMove == 'W' ? @onMove = 'B' : @onMove = 'W'
         else # Player moving out of order - throw exception
           raise WrongPlayerError
         end
@@ -126,6 +129,13 @@ class State
       rescue InvalidMoveError => e
         puts "Encountered an invalid move. Ignoring and maintaining current state."
     end
+  end
+
+  def humanMove(mvString)
+  # Accept a move string as an argument and attempts to make the
+  # move, if valid
+    humanMove = decodeMvString(mvString)
+    move(humanMove)
 
   end
 
@@ -308,6 +318,26 @@ class State
 
   def inBounds?(x, y)
     x > -1 and x < 5 and y > -1 and y < 6
+  end
+
+  def decodeMvString(mvString)
+  # Decode a string of type 'a1-a1' into (x,y) coordinates
+  # Returns a move object
+    begin
+      raise MalformedMoveError if mvString.length != 5
+      values = {"a" => 0, "b" => 1, "c"=> 2, "d" => 3, "e" => 4}
+      x0  = values["#{mvString[0].chr}"]
+      y0  = mvString[1].chr.to_i - 1
+      x    = values["#{mvString[3].chr}"]
+      y    = mvString[4].chr.to_i - 1
+      isCap = false
+
+      newMove = Move.new(Square.new(x0, y0), Square.new(x, y), isCap)
+
+      return newMove
+      rescue MalformedMoveError => e
+        puts 'Move string must be of format ax-by'
+    end
   end
 end
 
