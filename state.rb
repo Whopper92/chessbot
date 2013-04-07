@@ -13,15 +13,13 @@ class State
 
   def printBoard
   # Print out a formatted version of the current state of the board
-
-    board =  "#{@board[0 .. 4]}\n"\
-             "#{@board[5 .. 9]}\n"\
-             "#{@board[10..14]}\n"\
-             "#{@board[15..19]}\n"\
-             "#{@board[20..24]}\n"\
-             "#{@board[25..29]}\n"
-     puts "#{@turnCount} #{@onMove}"
-     puts board
+    puts "#{@turnCount} #{@onMove}"
+    i = 0
+    while i < 30 do
+      print @board[i .. i+4]
+      print "\n"
+      i += 5
+    end
   end
 
   def getState
@@ -126,6 +124,10 @@ class State
     end
   end
 
+  def inBounds?(x, y)
+    x > 0 and x < 5 and y > 0 and y < 6
+  end
+
   def moveScan(x0, y0, dx, dy, stopShort, capture)
   # This method is called many times by the moveList function,
   # which passes in every combination of movement directions for
@@ -133,15 +135,15 @@ class State
     x = x0
     y = y0
     c = colorOf(x,y)
-    moves = []
+    moves   = []
+    invalid = ['!']
     loop do
       x += dx
       y += dy
-      break if (x < 0 or x > 4 or y < 0 or y > 5)
+      break if not inBounds?(x, y)
+
       if @xyGrid[y][x].to_s != '.'
-        if @xyGrid[y][x].colorOf == c  # Same color, so the move is invalid
-          break
-        end
+        break if colorOf(x, y) == c  # Same color, so the move is invalid
         if capture == false
           break                        # We don't want to take this capture
         else
@@ -151,14 +153,42 @@ class State
       validMove = Move.new(Square.new(x0, y0), Square.new(x, y))
       moves << validMove
       break if stopShort == true
+    end
+
+    if moves != []
       return moves
+    else
+      return invalid
     end
   end
 
-  def moveList
-  # Scans every position of the entire board to determine every valid
-  # move in the current state
-    moveList = self.moveScan(3, 1, 0, 1, false, true)
+  def moveList(x, y)
+  # GRID SYSTEM: rows are y values, starting at 0 from the bottom
+  # Columns are x values, starting at 0 from the left
+  # Finds every valid move for a given piece
+    p = @xyGrid[y][x].upcase
+    moveList = []
+    temp  = []
+    case p
+      when 'K', 'Q'
+        for dx in -1..1
+          for dy in -1..1
+            next if dx == 0 and dy == 0
+            p == 'K' ? stopShort = true : stopShort = false
+            capture = true
+            temp << moveScan(x, y, dx, dy, stopShort, capture)
+          end
+        end
+        temp.each do |x|
+          moveList << x if x != ['!']
+        end
+      when 'R', 'B'
+
+      when 'K'
+
+      when 'P'
+
+    end
     moveList.each do |x|   # For testing
       puts x.to_s
     end

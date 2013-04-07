@@ -10,4 +10,4 @@ require 'move.rb'
   puts "\n"
   board.printBoard
   puts "\n"
-  board.moveList
+  board.moveList(4,0)
