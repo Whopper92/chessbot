@@ -45,7 +45,7 @@ class State
 
     x = 0
     y = 1
-    while x < 25 do
+    while x < 30 do
       @board[x .. x+4] = curBoard[y][0..4]
       x += 5
       y += 1
@@ -125,7 +125,7 @@ class State
   end
 
   def inBounds?(x, y)
-    x > -1 and x < 5 and y > 0 and y < 6
+    x > -1 and x < 5 and y > -1 and y < 6
   end
 
   def moveScan(x0, y0, dx, dy, stopShort, capture)
@@ -182,14 +182,41 @@ class State
           end
         end
       when 'R', 'B'
+        dx = 1
+        dy = 0
+        p == 'B' ? stopShort = true : stopShort = false
+        capture = true
+        for i in 1..4
+          temp = moveScan(x, y, dx, dy, stopShort, capture)
+          temp.each do |a|
+            @moveList << a if a != '!'
+          end
+          dx,dy = dy,dx
+          dy = -dy
+        end
+        if p == 'B'
+          dx = 1
+          dy = 1
+          stopShort = false
+          for i in 1..4
+            temp = moveScan(x, y, dx, dy, stopShort, capture)
+            temp.each do |a|
+              @moveList << a if a != '!'
+            end
+            dx,dy = dy,dx
+            dy = -dy
+          end
+        end
 
       when 'K'
 
       when 'P'
     end
+  end
+
+  def printMoves
     @moveList.each do |x|   # For testing
       puts x.to_s
     end
-    puts "\n\n"
   end
 end
