@@ -14,4 +14,5 @@ require 'move.rb'
 
   testMove = Move.new(Square.new(4,0), Square.new(4,1), false)
 #  testMove = Move.new(Square.new(1,3), Square.new(2,2), false)
-  board.move(testMove)
+  newState = board.move(testMove)
+  board.printBoard

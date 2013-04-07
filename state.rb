@@ -44,11 +44,6 @@ class State
     @blackRookSym    = 'r'
     @blackPawnSym    = 'p'
 
-    allSquares = 30
-    i = 0
-
-
-
     @board = [
       ['R', 'N', 'B', 'Q', 'K'],
       ['P', 'P', 'P', 'P', 'P'],
@@ -64,7 +59,6 @@ class State
   # Reads in a full string representation of the board
   # Note: It is unclear as to where this board will come from, so this method
   # implements the read as if the data were in a file
-
     @newBoard  = []
     File.open('test_state.txt').each do |line|
       @newBoard << line[0...-1].split('')
@@ -76,7 +70,6 @@ class State
   def writeBoard(curBoard)
   # Takes string from request called in getState to update the current board
   # based on a full string representation of the opponent's board
-
     @turnCount = curBoard[0][0]
     @onMove    = curBoard[0][2]
 
@@ -92,16 +85,12 @@ class State
 
   def updateBoard(x0, y0, x, y)
   # Update the board based on a single valid move
-  # First, convert from the grid system back to the 1D array
-=begin
-    fromIndex = y0 * 5 + x0
-    toIndex   = y * 5 + x
-    puts toIndex
-    puts @board.inspect
-    toPiece   = @board[toIndex]
-    puts toPiece
-     # Now update both positions on the board array
-=end
+    fromPiece = @board[y0][x0]
+    toPiece   = @board[y][x]  # This may be useful later to determine what was captured
+    # Now update both positions on the board array
+    @board[y0][x0] = '.'
+    @board[y][x]   = fromPiece
+    return @board
   end
 
   def move(aMove)
