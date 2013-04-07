@@ -7,7 +7,6 @@ class State
 
   def initialize
     @maxTurns = 80
-    @board    = [] # The board array
     @moveList = [] # All moves valid from this state
     self.newBoard
   end
@@ -15,11 +14,14 @@ class State
   def printBoard
   # Print out a formatted version of the current state of the board
     puts "#{@turnCount} #{@onMove}"
-    i = 0
-    while i < 30 do
-      print @board[i .. i+4]
+    y = 5
+    while y > - 1
+      for x in 0..4
+        print @board[y][x]
+        x += 1
+      end
       print "\n"
-      i += 5
+      y -= 1
     end
   end
 
@@ -44,30 +46,18 @@ class State
 
     allSquares = 30
     i = 0
-    while i < allSquares do
-      case i
-        when 0..4:
-          @board << @blackKingSym if i == 0
-          @board << @blackQueenSym if i == 1
-          @board << @blackBishopSym if i == 2
-          @board << @blackKnightSym if i == 3
-          @board << @blackRookSym if i == 4
-        when 5..9:
-          @board << @blackPawnSym
-        when 10..19:
-          @board << '.'
-        when 20..24:
-          @board <<  @whitePawnSym
-        when 25..29:
-          @board << @whiteRookSym if i == 25
-          @board << @whiteKnightSym if i == 26
-          @board << @whiteBishopSym if i == 27
-          @board << @whiteQueenSym if i == 28
-          @board << @whiteKingSym if i == 29
-      end
-      i += 1
-    end
-    assignRows
+
+
+
+    @board = [
+      ['R', 'N', 'B', 'Q', 'K'],
+      ['P', 'P', 'P', 'P', 'P'],
+      ['.', '.', '.', '.', '.'],
+      ['.', '.', '.', '.', '.'],
+      ['p', 'p', 'p', 'p', 'p'],
+      ['k', 'q', 'b', 'n', 'r']
+    ]
+
   end
 
   def getState
@@ -90,32 +80,20 @@ class State
     @turnCount = curBoard[0][0]
     @onMove    = curBoard[0][2]
 
-    x = 0
-    y = 1
-    while x < 30 do
-      @board[x .. x+4] = curBoard[y][0..4]
-      x += 5
-      y += 1
+    x = 0, y = 0, z = 6
+    while y < 6
+      for x in 0..4
+        @board[y][x] = curBoard[z][x]
+      end
+    y += 1
+    z -= 1
     end
-    assignRows
-  end
-
-  def assignRows
-  # Assign key indexes from the board array to convert (x,y) coordinates to
-  # array indexes for quick lookup. To easily map with the (x,y) coordinate
-  # system, the rows are actually the board array in reverse
-    @xyGrid = []
-    @xyGrid << @board[25..29]
-    @xyGrid << @board[20..24]
-    @xyGrid << @board[15..19]
-    @xyGrid << @board[10..14]
-    @xyGrid << @board[5 .. 9]
-    @xyGrid << @board[0 .. 4]
   end
 
   def updateBoard(x0, y0, x, y)
   # Update the board based on a single valid move
   # First, convert from the grid system back to the 1D array
+=begin
     fromIndex = y0 * 5 + x0
     toIndex   = y * 5 + x
     puts toIndex
@@ -123,7 +101,7 @@ class State
     toPiece   = @board[toIndex]
     puts toPiece
      # Now update both positions on the board array
-    
+=end
   end
 
   def move(aMove)
@@ -147,9 +125,9 @@ class State
       pos = aMove.decode('from')
       to  = aMove.decode('to')
 
-      if @xyGrid[pos[1]][pos[0]].upcase == @xyGrid[pos[1]][pos[0]] and @onMove == 'W' # Valid white move
+      if @board[pos[1]][pos[0]].upcase == @board[pos[1]][pos[0]] and @onMove == 'W' # Valid white move
         updateBoard(pos[0], pos[1], to[0], to[1])
-      elsif @xyGrid[pos[1]][pos[0]].upcase != @xyGrid[pos[1]][pos[0]] and @onMove == 'B' # Valid black move
+      elsif @board[pos[1]][pos[0]].upcase != @board[pos[1]][pos[0]] and @onMove == 'B' # Valid black move
         updateBoard(pos[0], pos[1], to[0], to[1])
       else # Player moving out of order - throw exception
 
@@ -173,7 +151,7 @@ class State
       x += dx
       y += dy
       break if not inBounds?(x, y)
-      if @xyGrid[y][x].to_s != '.'
+      if @board[y][x].to_s != '.'
         break if colorOf(x, y) == c  # Same color, so the move is invalid
         if capture == false
           break                        # We don't want to take this capture
@@ -194,7 +172,7 @@ class State
   # GRID SYSTEM: rows are y values, starting at 0 from the bottom
   # Columns are x values, starting at 0 from the left
   # Finds every valid move for a given piece
-    p          = @xyGrid[y][x].upcase
+    p = @board[y][x].upcase
     foundMoves = []
     case p
       when 'K', 'Q'
@@ -276,7 +254,7 @@ class State
 
       when 'P'
         checkList  = []
-        @xyGrid[y][x].upcase == @xyGrid[y][x] ? dir = 1 : dir = -1
+        @board[y][x].upcase == @board[y][x] ? dir = 1 : dir = -1
         stopShort = true
         getMv = moveScan(x, y, -1, dir, stopShort, capture)  # See if a capture diag-left exists
         if getMv != nil
@@ -324,12 +302,12 @@ class State
     moves.each do |a|
       @allMoves << a if a != [] and a != nil
     end
-#    puts @allMoves
+    #puts @allMoves
   end
 
   def colorOf(x, y)
   # Determine the color a piece on a given square
-    if ((@xyGrid[y][x]).to_s) == ((@xyGrid[y][x]).to_s).upcase
+    if ((@board[y][x]).to_s) == ((@board[y][x]).to_s).upcase
       'W'
     else
       'B'
