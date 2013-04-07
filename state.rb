@@ -23,35 +23,6 @@ class State
     end
   end
 
-  def getState
-  # Reads in a full string representation of the board
-  # Note: It is unclear as to where this board will come from, so this method
-  # implements the read as if the data were in a file
-
-    @newBoard  = []
-    File.open('test_state.txt').each do |line|
-      @newBoard << line[0...-1].split('')
-    end
-
-    updateState(@newBoard)
-  end
-
-  def updateState(curBoard)
-  # Takes string from request called in getState to update the current board
-  # based on a full string representation of the opponent's board
-
-    @turnCount = curBoard[0][0]
-    @onMove    = curBoard[0][2]
-
-    x = 0
-    y = 1
-    while x < 30 do
-      @board[x .. x+4] = curBoard[y][0..4]
-      x += 5
-      y += 1
-    end
-    assignRows
-  end
 
   def newBoard
   # Reset all piece locations to create fresh board
@@ -102,6 +73,36 @@ class State
     assignRows
   end
 
+  def getState
+  # Reads in a full string representation of the board
+  # Note: It is unclear as to where this board will come from, so this method
+  # implements the read as if the data were in a file
+
+    @newBoard  = []
+    File.open('test_state.txt').each do |line|
+      @newBoard << line[0...-1].split('')
+    end
+
+    writeBoard(@newBoard)
+  end
+
+  def writeBoard(curBoard)
+  # Takes string from request called in getState to update the current board
+  # based on a full string representation of the opponent's board
+
+    @turnCount = curBoard[0][0]
+    @onMove    = curBoard[0][2]
+
+    x = 0
+    y = 1
+    while x < 30 do
+      @board[x .. x+4] = curBoard[y][0..4]
+      x += 5
+      y += 1
+    end
+    assignRows
+  end
+
   def assignRows
   # Assign key indexes from the board array to convert (x,y) coordinates to
   # array indexes for quick lookup. To easily map with the (x,y) coordinate
@@ -115,29 +116,16 @@ class State
     @xyGrid << @board[0 .. 4]
   end
 
-  def colorOf(x, y)
-  # Determine the color a piece on a given square
-    if ((@xyGrid[y][x]).to_s) == ((@xyGrid[y][x]).to_s).upcase
-      'W'
-    else
-      'B'
-    end
-  end
-
-  def inBounds?(x, y)
-    x > -1 and x < 5 and y > -1 and y < 6
-  end
 
   def moveScan(x0, y0, dx, dy, stopShort, capture)
-  # This method is called many times by the moveList function,
+  # This method is called many times by the moveList method,
   # which passes in every combination of movement directions for
-  # a given piece for a given square position, many times over.
+  # a given piece for a given square position.
     x = x0
     y = y0
     c = colorOf(x,y)
     moves     = []
     validMove = []
-    invalid   = ['!']
     isCap     = false
     loop do
       x += dx
@@ -157,11 +145,7 @@ class State
       break if stopShort == true
     end
 
-    if moves != []
-      return moves
-    else
-      return invalid
-    end
+    return moves if moves != []
   end
 
   def moveList(x, y)
@@ -178,8 +162,10 @@ class State
             p == 'K' ? stopShort = true : stopShort = false
             capture = true
             getMv = moveScan(x, y, dx, dy, stopShort, capture)
-            getMv.each do |a|
-              foundMoves << a if a != '!'
+            if getMv != nil
+              getMv.each do |a|
+                foundMoves << a
+              end
             end
           end
         end
@@ -192,8 +178,10 @@ class State
         capture = true
         for i in 1..4
           getMv = moveScan(x, y, dx, dy, stopShort, capture)
-          getMv.each do |a|
-            foundMoves << a if a != '!'
+          if getMv != nil
+            getMv.each do |a|
+              foundMoves << a
+            end
           end
           dx,dy = dy,dx
           dy = -dy
@@ -204,8 +192,10 @@ class State
           stopShort = false
           for i in 1..4
             getMv = moveScan(x, y, dx, dy, stopShort, capture)
-            getMv.each do |a|
-              foundMoves << a if a != '!'
+            if getMv != nil
+              getMv.each do |a|
+                foundMoves << a
+              end
             end
             dx,dy = dy,dx
             dy = -dy
@@ -219,8 +209,10 @@ class State
         stopShort = true
         for i in 1..4
           getMv = moveScan(x, y, dx, dy, stopShort, capture)
-          getMv.each do |a|
-            foundMoves << a if a != '!'
+          if getMv != nil
+            getMv.each do |a|
+              foundMoves << a
+            end
           end
           dx,dy = dy,dx
           dy = -dy
@@ -230,8 +222,10 @@ class State
         dy - 2
         for i in 1..4
           getMv = moveScan(x, y, dx, dy, stopShort, capture)
-          getMv.each do |a|
-            foundMoves << a if a != '!'
+          if getMv != nil
+            getMv.each do |a|
+              foundMoves << a
+            end
           end
           dx,dy = dy,dx
           dy = -dy
@@ -240,11 +234,13 @@ class State
 
       when 'P'
         checkList  = []
-        @xyGrid[y][x].upcase == @xyGrid[y][x]? dir = 1 : dir = -1
+        @xyGrid[y][x].upcase == @xyGrid[y][x] ? dir = 1 : dir = -1
         stopShort = true
         getMv = moveScan(x, y, -1, dir, stopShort, capture)  # See if a capture diag-left exists
-        getMv.each do |a|
-          checkList << a if a != '!'
+        if getMv != nil
+          getMv.each do |a|
+            checkList << a
+          end
         end
         if checkList.length == 1 and checkList[0].isCapture == true
           foundMoves << checkList
@@ -252,8 +248,10 @@ class State
         checkList = []
 
         getMv = moveScan(x, y, 1, dir, stopShort, capture)  # Now see if a capture diag-right exists
-        getMv.each do |a|
-          checkList << a if a != '!'
+        if getMv != nil
+          getMv.each do |a|
+            checkList << a
+          end
         end
         if checkList.length == 1 and checkList[0].isCapture == true
           foundMoves << checkList
@@ -262,8 +260,10 @@ class State
 
         capture = false                                    # Lastly, see if the pawn can move forward
         getMv = moveScan(x, y, 0, dir, stopShort, capture)
-        getMv.each do |a|
-          foundMoves << a if a != '!'
+        if getMv != nil
+          getMv.each do |a|
+            foundMoves << a
+          end
         end
         return foundMoves
     end
@@ -282,7 +282,19 @@ class State
     moves.each do |a|
       @allMoves << a if a != [] and a != nil
     end
-
     puts @allMoves
+  end
+
+  def colorOf(x, y)
+  # Determine the color a piece on a given square
+    if ((@xyGrid[y][x]).to_s) == ((@xyGrid[y][x]).to_s).upcase
+      'W'
+    else
+      'B'
+    end
+  end
+
+  def inBounds?(x, y)
+    x > -1 and x < 5 and y > -1 and y < 6
   end
 end
