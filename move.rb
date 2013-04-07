@@ -12,7 +12,16 @@ class Move
     @toSquare   = toSq
   end
 
+  # Convert from (x,y) coordinates to move string coordinates
+  def toChessMv(x,y)
+    col = ['a', 'b', 'c', 'd', 'e'][x]
+    row = y+1
+    col + row.to_s
+  end
+
   def to_s
-    return "#{@fromSquare.getX},#{@fromSquare.getY}-#{@toSquare.getX},#{@toSquare.getY}"
+    from = toChessMv(@fromSquare.xPos, @fromSquare.yPos)
+    to   = toChessMv(@toSquare.xPos, @toSquare.yPos)
+    "#{from}-#{to}"
   end
 end

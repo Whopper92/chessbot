@@ -120,9 +120,9 @@ class State
   def colorOf(x, y)
   # Determine the color a piece on a given square
     if ((@xyGrid[y][x]).to_s) == ((@xyGrid[y][x]).to_s).upcase
-      return 'W'
+      'W'
     else
-      return 'B'
+      'B'
     end
   end
 

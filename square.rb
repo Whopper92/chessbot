@@ -9,16 +9,10 @@ require 'move.rb'
 #[{move:(toSq,fromSq)},{move:(toSq,fromSq)},{move:(toSq,fromSq)} ]
 class Square
 
+  attr_reader :xPos, :yPos
+
   def initialize(x, y)
     @xPos = x
     @yPos = y
-  end
-
-  def getX
-    "#{@xPos}"
-  end
-
-  def getY
-    "#{@yPos}"
   end
 end
