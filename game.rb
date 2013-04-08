@@ -5,7 +5,8 @@ require 'square.rb'
 require 'move.rb'
 
   board = State.new()
-  board.randomGame
+  board.humanPlay
+#  board.randomGame
   #board.printBoard
 #  board.getState
 

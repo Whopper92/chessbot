@@ -344,13 +344,63 @@ class State
   # random moves for both sides
     begin
       while gameOver? == false do
-        pickMove = @allMoves.flatten.choice
-        if colorOf(pickMove.decode('from')[0], pickMove.decode('from')[1]) == @onMove
-          move(pickMove)
-          printBoard
-          puts "\n"
-        end
+        randomMove
+        printBoard
+        puts "\n"
       end
+    end
+  end
+
+  def humanPlay
+  # Allow a human player to pick a color and play against the bot
+    humanColor = ''
+    botColor   = ''
+    loop do
+      puts "Welcome! Choose a color: W or B"
+      humanColor = gets
+      humanColor = humanColor.chomp!
+      break if humanColor == 'W' or humanColor.to_s == 'B'
+    end
+    humanColor == 'W' ? botColor = 'B': botColor = 'W'
+
+    puts "\n"
+    printBoard
+    puts "\n"
+
+    # Game loop
+    while gameOver? == false do
+      if @onMove == humanColor
+        puts "Enter a move command: "
+        movePick = gets
+        movePick = movePick.chomp!
+        humanMove(movePick)
+        puts "\n"
+        puts "human"
+        printBoard
+        puts "\n"
+      else
+        randomMove()
+        puts "\n"
+        puts "bot"
+        printBoard
+        puts "\n"
+      end
+
+    end
+  end
+
+  def randomMove()
+  # Pick a random move based on the color of onMove
+    pickMove = @allMoves.flatten.choice
+    moved = false
+    loop do
+      if colorOf(pickMove.decode('from')[0], pickMove.decode('from')[1]) == @onMove
+        move(pickMove)
+        moved = true
+      else
+        pickMove = @allMoves.flatten.choice
+      end
+      break if moved == true
     end
   end
 
