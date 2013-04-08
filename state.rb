@@ -109,7 +109,6 @@ class State
       if isValid == true
         pos = aMove.decode('from')
         to  = aMove.decode('to')
-
         if (@board[pos[1]][pos[0]].upcase == @board[pos[1]][pos[0]] and @onMove == 'W') or # Valid white move
            (@board[pos[1]][pos[0]].upcase != @board[pos[1]][pos[0]] and @onMove == 'B') # Valid black move
               updateBoard(pos[0], pos[1], to[0], to[1])
@@ -337,6 +336,37 @@ class State
       return newMove
       rescue MalformedMoveError => e
         puts 'Move string must be of format ax-by'
+    end
+  end
+
+  def randomGame
+  # The bot will complete a single random game, picking
+  # random moves for both sides
+    begin
+      while gameOver? == false do
+        pickMove = @allMoves.flatten.choice
+        if colorOf(pickMove.decode('from')[0], pickMove.decode('from')[1]) == @onMove
+          move(pickMove)
+          printBoard
+          puts "\n"
+        end
+      end
+    end
+  end
+
+  def gameOver?
+  # Determine if too many turns have passed or if either King has
+  # been captured
+    wKing = false
+    bKing = false
+    @board.flatten.each do |s|
+      wKing = true if s.to_s == 'K'
+      bKing = true if s.to_s == 'k'
+    end
+    if not wKing or not bKing or @turnCount > @maxTurns
+      return true
+    else
+      return false
     end
   end
 end
