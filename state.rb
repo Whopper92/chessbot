@@ -196,7 +196,7 @@ class State
         dx = 1
         dy = 0
         p == 'B' ? stopShort = true : stopShort = false
-        capture = true
+        p == 'B' ? capture   = true : capture   = true
         for i in 1..4
           getMv = moveScan(x, y, dx, dy, stopShort, capture)
           if getMv != nil
@@ -210,6 +210,7 @@ class State
         if p == 'B'
           dx        = 1
           dy        = 1
+          capture   = true
           stopShort = false
           for i in 1..4
             getMv = moveScan(x, y, dx, dy, stopShort, capture)
