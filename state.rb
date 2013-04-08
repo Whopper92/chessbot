@@ -370,18 +370,19 @@ class State
     # Game loop
     while gameOver? == false do
       if @onMove == humanColor
-        puts "Enter a move command: "
-        movePick = gets
-        movePick = movePick.chomp!
-        humanMove(movePick)
+        loop do
+          puts "Enter a move command: "
+          @movePick = gets
+          @movePick = @movePick.chomp!
+          break if validMove?(@movePick)
+        end
+        humanMove(@movePick)
         puts "\n"
-        puts "human"
         printBoard
         puts "\n"
       else
         randomMove()
         puts "\n"
-        puts "bot"
         printBoard
         puts "\n"
       end
@@ -418,6 +419,18 @@ class State
     else
       return false
     end
+  end
+
+  def validMove?(aMove)
+  # Validate a human move string to ensure it is sane
+     valCols = ['a', 'b', 'c', 'd', 'e']
+     valRows = ['1', '2', '3', '4', '5', '6']
+     if valCols.include? aMove[0].chr and valCols.include? aMove[3].chr and
+        valRows.include? aMove[1].chr and valRows.include? aMove[4].chr
+          return true
+     else
+        return false
+     end
   end
 end
 
