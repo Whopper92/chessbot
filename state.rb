@@ -219,8 +219,7 @@ class State
                 foundMoves << a
               end
             end
-            dx,dy = dy,dx
-            dy = -dy
+            dx,dy = -dy,dx
           end
         end
         return foundMoves
@@ -236,8 +235,7 @@ class State
               foundMoves << a
             end
           end
-          dx,dy = dy,dx
-          dy = -dy
+          dx,dy = -dy,dx
         end
 
         dx = -1
@@ -434,4 +432,3 @@ class State
      end
   end
 end
-
