@@ -9,7 +9,8 @@ describe Move do
   end
 
   describe '#initialize' do
-    it 'should take two Squares and a capture boolean value and creates a move object' do
+    it 'should take two Squares and a capture boolean value and create a move object' do
+      @aMove.should be_an_instance_of Move
       @aMove.isCapture.should == false
     end
   end
@@ -33,5 +34,4 @@ describe Move do
       @aMove.to_s.should == 'a1-b2'
     end
   end
-
 end
