@@ -1,8 +1,8 @@
 #! /usr/bin/ruby
 
-require_relative 'square.rb'
-require_relative 'move.rb'
-require_relative 'exceptions.rb'
+require './square.rb'
+require './move.rb'
+require './exceptions.rb'
 
 class State
 

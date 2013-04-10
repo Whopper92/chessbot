@@ -1,7 +1,7 @@
 #! /usr/bin/ruby
 
-require_relative 'state.rb'
-require_relative 'square.rb'
+require './state.rb'
+require './square.rb'
 
 # I believe this class is no more than a small data structure to hold
 # a single move. A large array will hold many of them in state.
