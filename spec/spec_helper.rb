@@ -1,0 +1,5 @@
+require_relative '../state.rb'
+require_relative '../square.rb'
+require_relative '../move.rb'
+require_relative '../exceptions.rb'
+require 'yaml'
