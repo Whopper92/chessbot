@@ -7,10 +7,12 @@ require File.expand_path('../exceptions.rb', __FILE__)
 class State
 
   def initialize
-    @maxTurns = 80
-    @moveList = [] # All moves valid from this state
-    self.newBoard
-    self.findAllMoves
+    @maxTurns  = 80
+    @moveList  = [] # All moves valid from this state
+    @onMove    = "W"
+    @turnCount = 0
+    newBoard
+    findAllMoves
   end
 
   def printBoard
@@ -30,7 +32,7 @@ class State
   def newBoard
   # Reset all piece locations to create fresh board
 
-    @onMove          = "W"
+    @onMove          = 'W'
     @turnCount       = 0
     @whiteKingSym    = 'K'
     @whiteQueenSym   = 'Q'
