@@ -62,5 +62,5 @@ decisions I made while completing this assignment.
 6) Future considerations
   At the time of this writing, I am currently working on implementing a full
   rspec test suite, featuring Travis continuous integration. Hopefully these
-  tests will not take too long to write and will save my many headaches down
+  tests will not take too long to write and will save me many headaches down
   the road.

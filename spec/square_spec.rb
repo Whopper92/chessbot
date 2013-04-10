@@ -1,5 +1,5 @@
 require 'spec_helper'
-require File.expand_path('../../square.rb', __FILE__)
+require File.expand_path('../../lib/square.rb', __FILE__)
 
 describe Square do
 

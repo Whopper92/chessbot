@@ -1,8 +1,6 @@
 #! /usr/bin/ruby
 
-require 'state.rb'
-require 'square.rb'
-require 'move.rb'
+require File.expand_path('../../lib/state.rb', __FILE__)
 
 if ARGV[0] == 'random'
   beginning = Time.now
