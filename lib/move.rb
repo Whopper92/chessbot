@@ -29,6 +29,7 @@ class Move
     end
   end
 
+  # Return a human-readable chess string representation of this move
   def to_s
     from = toChessMv(@fromSquare.xPos, @fromSquare.yPos)
     to   = toChessMv(@toSquare.xPos, @toSquare.yPos)
