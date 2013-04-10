@@ -424,13 +424,14 @@ class State
 
   def validMove?(aMove)
   # Validate a human move string to ensure it is sane
-     valCols = ['a', 'b', 'c', 'd', 'e']
-     valRows = ['1', '2', '3', '4', '5', '6']
-     if valCols.include? aMove[0].chr and valCols.include? aMove[3].chr and
-        valRows.include? aMove[1].chr and valRows.include? aMove[4].chr
-          return true
-     else
-        return false
-     end
+    return false if aMove.length != 5
+    valCols = ['a', 'b', 'c', 'd', 'e']
+    valRows = ['1', '2', '3', '4', '5', '6']
+    if valCols.include? aMove[0].chr and valCols.include? aMove[3].chr and
+       valRows.include? aMove[1].chr and valRows.include? aMove[4].chr
+         return true
+    else
+         return false
+    end
   end
 end

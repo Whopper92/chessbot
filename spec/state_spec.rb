@@ -23,6 +23,17 @@ describe State do
     @aState    = State.new
   end
 
+  before :each do
+    @aState.instance_variable_set :@board, [["R", "N", "B", "Q", "K"],
+                                            ["P", "P", "P", "P", "P"],
+                                            [".", ".", ".", ".", "."],
+                                            [".", ".", ".", ".", "."],
+                                            ["p", "p", "p", "p", "p"],
+                                            ["k", "q", "b", "n", "r"]]
+    @aState.instance_variable_set :@turnCount, 0
+    @aState.instance_variable_set :@onMove, 'W'
+  end
+
   describe '#initialize' do
     it 'should initialize a new board array' do
       @aState.should be_an_instance_of State
@@ -105,14 +116,46 @@ describe State do
   describe '#randomMove' do
 
   end
-
+=end
   describe '#gameOver?' do
+    it 'should return true if either king is missing' do
+      @aState.instance_variable_set :@turnCount, 10
+      @aState.instance_variable_set :@board, [["R", "N", "B", "Q", "."],
+                                              ["P", "P", "P", "P", "P"],
+                                              [".", ".", ".", ".", "."],
+                                              [".", ".", ".", ".", "."],
+                                              ["p", "p", "p", "p", "p"],
+                                              ["k", "q", "b", "n", "r"]]
+      @aState.gameOver?.should == true
+    end
 
+    it 'should return true if the move count exceeds the maximum number of moves' do
+      @aState.instance_variable_set :@turnCount, 81
+      @aState.gameOver?.should == true
+    end
+
+    it 'should return false if both kings are alive and 40 moves have not passed' do
+      @aState.instance_variable_set :@turnCount, 10
+      @aState.instance_variable_set :@board, [["R", "N", "B", "Q", "K"],
+                                              ["P", "P", "P", "P", "P"],
+                                              [".", ".", ".", ".", "."],
+                                              [".", ".", ".", ".", "."],
+                                              ["p", "p", "p", "p", "p"],
+                                              ["k", "q", "b", "n", "r"]]
+      @aState.gameOver?.should == false
+    end
   end
 
   describe '#validMove?' do
+    it 'should return true if a valid move string is passed' do
+      @aState.validMove?('a2-a3').should == true
+    end
 
+    it 'should return false if any invalid move string is passed' do
+      @aState.validMove?('f7-g6').should == false
+      @aState.validMove?('somestring').should == false
+      @aState.validMove?('').should == false
+    end
   end
-=end
 end
 
