@@ -1,4 +1,4 @@
-# ChessBot
+# Rooky
 ## A Ruby Chess Engine by Will Hopper for CS 442
 
 ### Testing with Travis CI
