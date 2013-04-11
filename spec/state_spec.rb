@@ -45,8 +45,8 @@ describe State do
   describe '#printBoard' do
     it 'should print a formatted version of the current board state' do
 
-      @output = capture(:stdout) { @aState.printBoard }
-      @output.should ==
+      output = capture(:stdout) { @aState.printBoard }
+      output.should ==
       "#{@aState.instance_variable_get(:@turnCount)} #{@aState.instance_variable_get(:@onMove)}\n"\
         "kqbnr\n"\
         "ppppp\n"\
@@ -70,11 +70,15 @@ describe State do
     end
   end
 
-#  describe '#move' do
-#    it 'should raise an invalid move error if invalid input is received' do
-
-#    end
-#  end
+  describe '#move' do
+    validMove = Move.new(Square.new(0,1), Square.new(0,2))
+    it 'should update the board if a valid move is passed' do
+      @aState.should_receive(:updateBoard).with(0,1,0,2)
+      @aState.move(validMove)
+      @aState.instance_variable_get(:@turnCount).should == 1
+      @aState.instance_variable_get(:@onMove).should == 'B'
+    end
+  end
 
   describe '#moveScan' do
     it 'should return nothing if there are no valid moves' do
