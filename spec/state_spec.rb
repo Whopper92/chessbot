@@ -92,15 +92,22 @@ describe State do
   describe '#findAllMoves' do
 
   end
+=end
 
   describe '#colorOf' do
-
+    it 'should return the proper color of the piece on a given board index' do
+      @aState.colorOf(0,0).should == 'W'
+      @aState.colorOf(0,4).should == 'B'
+      @aState.colorOf(2,2).should == 'empty'
+    end
   end
 
   describe '#inBounds?' do
-
+    it 'should return true if argument coordinates are in bounds' do
+      @aState.inBounds?(0,5).should == true
+      @aState.inBounds?(-2,0).should == false
+    end
   end
-=end
 
   describe '#decodeMvString' do
     it 'should return an (x,y) pair for a given chess move string' do

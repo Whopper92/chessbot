@@ -309,15 +309,21 @@ class State
 
   def colorOf(x, y)
   # Determine the color a piece on a given square
-    if ((@board[y][x]).to_s) == ((@board[y][x]).to_s).upcase
-      'W'
+    if @board[y][x].to_s == @board[y][x].to_s.upcase and @board[y][x] != '.'
+      return 'W'
+    elsif @board[y][x].to_s != @board[y][x].to_s.upcase and @board[y][x] != '.'
+      return 'B'
     else
-      'B'
+      return 'empty'
     end
   end
 
   def inBounds?(x, y)
-    x > -1 and x < 5 and y > -1 and y < 6
+    if x > -1 and x < 5 and y > -1 and y < 6
+      return true
+    else
+      return false
+    end
   end
 
   def decodeMvString(mvString)
