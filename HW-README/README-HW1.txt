@@ -1,3 +1,5 @@
+Rooky - A Minichess bot by Will Hopper
+
 Homework 1: Discussion
 
 My path through various solutions for the implementation of homework 1
