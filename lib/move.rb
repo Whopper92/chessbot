@@ -4,12 +4,9 @@
 # a single move. A large array will hold many of them in state.
 class Move
 
-  attr_reader :isCapture
-
-  def initialize(fromSq, toSq, isCap)
+  def initialize(fromSq, toSq)
     @fromSquare = fromSq
     @toSquare   = toSq
-    @isCapture  = isCap
   end
 
   # Convert from (x,y) coordinates to move string coordinates

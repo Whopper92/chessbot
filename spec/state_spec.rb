@@ -70,29 +70,112 @@ describe State do
     end
   end
 
-=begin
-  describe '#move' do
-    it 'should raise an invalid move error if invalid input is received' do
+#  describe '#move' do
+#    it 'should raise an invalid move error if invalid input is received' do
 
-    end
-  end
-
-  describe '#humanMove' do
-
-  end
+#    end
+#  end
 
   describe '#moveScan' do
+    it 'should return nothing if there are no valid moves' do
+      @aState.moveScan(0,0,0,1,true,true).should == nil
+    end
 
+    it 'should return an array of valid moves if there are any' do
+    @aState.instance_variable_set :@board, [["R", "N", "B", "Q", "K"],
+                                            [".", "P", "P", "P", "P"],
+                                            [".", ".", ".", ".", "."],
+                                            [".", ".", ".", ".", "."],
+                                            ["p", "p", "p", "p", "p"],
+                                            ["k", "q", "b", "n", "r"]]
+
+      i = 1
+      @aState.moveScan(0,0,0,1,false,true).each do |m|
+        m.should be_an_instance_of Move
+        m.to_s.should == 'a1-a2' if i == 1
+        m.to_s.should == 'a1-a3' if i == 2
+        m.to_s.should == 'a1-a4' if i == 3
+        m.to_s.should == 'a1-a5' if i == 4
+        i += 1
+      end
+    end
   end
 
   describe '#moveList' do
 
-  end
+    it 'should call moveScan in every direction for a king' do
+      @aState.should_receive(:moveScan).with(4,0,-1,-1,true,true)
+      @aState.should_receive(:moveScan).with(4,0,-1,0,true,true)
+      @aState.should_receive(:moveScan).with(4,0,-1,1,true,true)
+      @aState.should_receive(:moveScan).with(4,0,-0,-1,true,true)
+      @aState.should_receive(:moveScan).with(4,0,0,1,true,true)
+      @aState.should_receive(:moveScan).with(4,0,1,-1,true,true)
+      @aState.should_receive(:moveScan).with(4,0,1,0,true,true)
+      @aState.should_receive(:moveScan).with(4,0,1,1,true,true)
+      @aState.moveList(4,0)
+    end
 
-  describe '#findAllMoves' do
+    it 'should call moveScan in every direction for a queen' do
+      @aState.should_receive(:moveScan).with(3,0,-1,-1,false,true)
+      @aState.should_receive(:moveScan).with(3,0,-1,0,false,true)
+      @aState.should_receive(:moveScan).with(3,0,-1,1,false,true)
+      @aState.should_receive(:moveScan).with(3,0,-0,-1,false,true)
+      @aState.should_receive(:moveScan).with(3,0,0,1,false,true)
+      @aState.should_receive(:moveScan).with(3,0,1,-1,false,true)
+      @aState.should_receive(:moveScan).with(3,0,1,0,false,true)
+      @aState.should_receive(:moveScan).with(3,0,1,1,false,true)
+      @aState.moveList(3,0)
+
+    end
+
+    it 'should call moveScan in NSWE for a rook' do
+      @aState.should_receive(:moveScan).with(0,0,1,0,false,true)
+      @aState.should_receive(:moveScan).with(0,0,0,1,false,true)
+      @aState.should_receive(:moveScan).with(0,0,-1,0,false,true)
+      @aState.should_receive(:moveScan).with(0,0,-0,-1,false,true)
+      @aState.moveList(0,0)
+    end
+
+    it 'should call moveScan in every direction for a Bishop' do
+      @aState.should_receive(:moveScan).with(2,0,1,0,true,false)
+      @aState.should_receive(:moveScan).with(2,0,0,1,true,false)
+      @aState.should_receive(:moveScan).with(2,0,-1,0,true,false)
+      @aState.should_receive(:moveScan).with(2,0,-0,-1,true,false)
+      @aState.should_receive(:moveScan).with(2,0,1,1,false,true)
+      @aState.should_receive(:moveScan).with(2,0,1,-1,false,true)
+      @aState.should_receive(:moveScan).with(2,0,-1,1,false,true)
+      @aState.should_receive(:moveScan).with(2,0,-1,-1,false,true)
+      @aState.moveList(2,0)
+    end
+
+    it 'should call moveScan in eight directions for Knights' do
+      @aState.should_receive(:moveScan).with(1,0,1,2,true,true)
+      @aState.should_receive(:moveScan).with(1,0,1,-2,true,true)
+      @aState.should_receive(:moveScan).with(1,0,-1,2,true,true)
+      @aState.should_receive(:moveScan).with(1,0,-1,-2,true,true)
+      @aState.should_receive(:moveScan).with(1,0,2,1,true,true)
+      @aState.should_receive(:moveScan).with(1,0,2,-1,true,true)
+      @aState.should_receive(:moveScan).with(1,0,-2,1,true,true)
+      @aState.should_receive(:moveScan).with(1,0,-2,-1,true,true)
+      @aState.moveList(1,0)
+    end
+
+    it 'should call moveScan in three directions for white Pawns' do
+      @aState.should_receive(:moveScan).with(0,1,0,1,true,false)
+      @aState.should_receive(:moveScan).with(0,1,-1,1,true,true)
+      @aState.should_receive(:moveScan).with(0,1,1,1,true,true)
+      @aState.moveList(0,1)
+    end
+
+    it 'should call moveScan in three directions for black Pawns' do
+      @aState.should_receive(:moveScan).with(0,4,0,-1,true,false)
+      @aState.should_receive(:moveScan).with(0,4,-1,-1,true,true)
+      @aState.should_receive(:moveScan).with(0,4,1,-1,true,true)
+      @aState.moveList(0,4)
+
+    end
 
   end
-=end
 
   describe '#colorOf' do
     it 'should return the proper color of the piece on a given board index' do
@@ -165,4 +248,3 @@ describe State do
     end
   end
 end
-

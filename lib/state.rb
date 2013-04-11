@@ -149,7 +149,6 @@ class State
     c = colorOf(x,y)
     moves     = []
     validMove = []
-    isCap     = false
     loop do
       x += dx
       y += dy
@@ -160,10 +159,9 @@ class State
           break                        # We don't want to take this capture
         else
           stopShort = true             # the capture move is valid
-          isCap     = true
         end
       end
-      validMove = Move.new(Square.new(x0, y0), Square.new(x, y), isCap)
+      validMove = Move.new(Square.new(x0, y0), Square.new(x, y))
       moves << validMove
       break if stopShort == true
     end
@@ -206,8 +204,7 @@ class State
               foundMoves << a
             end
           end
-          dx,dy = dy,dx
-          dy = -dy
+          dx,dy = -dy,dx
         end
         if p == 'B'
           dx        = 1
@@ -230,6 +227,7 @@ class State
         dx        = 1
         dy        = 2
         stopShort = true
+        capture   =  true
         for i in 1..4
           getMv = moveScan(x, y, dx, dy, stopShort, capture)
           if getMv != nil
@@ -255,30 +253,22 @@ class State
         return foundMoves
 
       when 'P'
-        checkList  = []
         @board[y][x].upcase == @board[y][x] ? dir = 1 : dir = -1
         stopShort = true
+        capture   = true
         getMv = moveScan(x, y, -1, dir, stopShort, capture)  # See if a capture diag-left exists
         if getMv != nil
           getMv.each do |a|
-            checkList << a
+            foundMoves << a
           end
         end
-        if checkList.length == 1 and checkList[0].isCapture == true
-          foundMoves << checkList
-        end
-        checkList = []
 
         getMv = moveScan(x, y, 1, dir, stopShort, capture)  # Now see if a capture diag-right exists
         if getMv != nil
           getMv.each do |a|
-            checkList << a
+            foundMoves << a
           end
         end
-        if checkList.length == 1 and checkList[0].isCapture == true
-          foundMoves << checkList
-        end
-        checkList = []
 
         capture = false                                    # Lastly, see if the pawn can move forward
         getMv = moveScan(x, y, 0, dir, stopShort, capture)
@@ -336,9 +326,8 @@ class State
       y0  = mvString[1].chr.to_i - 1
       x    = values["#{mvString[3].chr}"]
       y    = mvString[4].chr.to_i - 1
-      isCap = false
 
-      newMove = Move.new(Square.new(x0, y0), Square.new(x, y), isCap)
+      newMove = Move.new(Square.new(x0, y0), Square.new(x, y))
 
       return newMove
     end
