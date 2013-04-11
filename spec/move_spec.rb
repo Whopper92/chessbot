@@ -5,13 +5,12 @@ require File.expand_path('../../lib/square.rb', __FILE__)
 describe Move do
 
   before :all do
-    @aMove = Move.new(Square.new(0, 0), Square.new(1, 1), false)
+    @aMove = Move.new(Square.new(0, 0), Square.new(1, 1))
   end
 
   describe '#initialize' do
     it 'should take two Squares and a capture boolean value and create a move object' do
       @aMove.should be_an_instance_of Move
-      @aMove.isCapture.should == false
     end
   end
 
