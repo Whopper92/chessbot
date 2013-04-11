@@ -13,4 +13,5 @@ To play against Rooky:
 [![Build Status](https://api.travis-ci.org/Whopper92/chessbot.png)](https://api.travis-ci.org/Whopper92/chessbot.png)
 
 To run tests locally:
+
     rake spec
