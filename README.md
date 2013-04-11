@@ -8,7 +8,7 @@ To run a complete, random game:
 
 To play against Rooky:
 
-    bin.game.rb
+    bin/game.rb
 ### Testing with Travis CI
 [![Build Status](https://api.travis-ci.org/Whopper92/chessbot.png)](https://api.travis-ci.org/Whopper92/chessbot.png)
 
