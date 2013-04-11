@@ -321,7 +321,7 @@ class State
   end
 
   def decodeMvString(mvString)
-  # Decode a string of type 'a1-a1' into (x,y) coordinates
+  # Decode a string of type 'a1-a2' into (x,y) coordinates
   # Returns a move object
     begin
       raise MalformedMoveError if mvString.length != 5
@@ -335,20 +335,16 @@ class State
       newMove = Move.new(Square.new(x0, y0), Square.new(x, y), isCap)
 
       return newMove
-      rescue MalformedMoveError => e
-        puts 'Move string must be of format ax-by'
     end
   end
 
   def randomGame
   # The bot will complete a single random game, picking
   # random moves for both sides
-    begin
-      while gameOver? == false do
-        randomMove
-        printBoard
-        puts "\n"
-      end
+    while gameOver? == false do
+      randomMove
+      printBoard
+      puts "\n"
     end
   end
 

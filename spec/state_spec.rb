@@ -100,23 +100,23 @@ describe State do
   describe '#inBounds?' do
 
   end
+=end
 
   describe '#decodeMvString' do
+    it 'should return an (x,y) pair for a given chess move string' do
+      result = @aState.decodeMvString('a1-a2')
+      result.should be_an_instance_of Move
+      result.instance_variable_get(:@fromSquare).xPos.should == 0
+      result.instance_variable_get(:@fromSquare).yPos.should == 0
+      result.instance_variable_get(:@toSquare).xPos.should == 0
+      result.instance_variable_get(:@toSquare).yPos.should == 1
+    end
 
+    it 'should raise a MalformedMoveError if argument string length is not 5' do
+      expect { @aState.decodeMvString('somestring')}.to raise_error MalformedMoveError
+    end
   end
 
-  describe '#randomGame' do
-
-  end
-
-  describe '#humanPlay' do
-
-  end
-
-  describe '#randomMove' do
-
-  end
-=end
   describe '#gameOver?' do
     it 'should return true if either king is missing' do
       @aState.instance_variable_set :@turnCount, 10
