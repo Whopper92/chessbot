@@ -58,6 +58,7 @@ describe State do
   end
 
   describe '#updateBoard' do
+
     it 'should update the board array based on a valid move' do
 
       @aState.updateBoard(1,0,0,2).should ==
@@ -67,6 +68,32 @@ describe State do
          [".", ".", ".", ".", "."],
          ["p", "p", "p", "p", "p"],
          ["k", "q", "b", "n", "r"]]
+    end
+
+    it 'should promote a pawn that has reached the opposite side to a queen' do
+      @aState.instance_variable_set :@board, [["R", "N", "B", ".", "K"],
+                                              ["P", "P", "P", "p", "P"],
+                                              [".", ".", ".", ".", "."],
+                                              [".", ".", ".", ".", "."],
+                                              ["p", "P", "p", "p", "p"],
+                                              ["k", ".", "b", "n", "r"]]
+
+      @aState.updateBoard(1,4,1,5).should ==
+        [["R", "N", "B", ".", "K"],
+         ["P", "P", "P", "p", "P"],
+         [".", ".", ".", ".", "."],
+         [".", ".", ".", ".", "."],
+         ["p", ".", "p", "p", "p"],
+         ["k", "Q", "b", "n", "r"]]
+
+      @aState.updateBoard(3,1,3,0).should ==
+        [["R", "N", "B", "q", "K"],
+         ["P", "P", "P", ".", "P"],
+         [".", ".", ".", ".", "."],
+         [".", ".", ".", ".", "."],
+         ["p", ".", "p", "p", "p"],
+         ["k", "Q", "b", "n", "r"]]
+
     end
   end
 

@@ -92,9 +92,18 @@ class State
   # Update the board based on a single valid move
     fromPiece = @board[y0][x0]
     toPiece   = @board[y][x]  # This may be useful later to determine what was captured
+
+    # If a pawn makes it the the opposite side of the board, promote to queen
+    if fromPiece == 'P' and y == 5
+      fromPiece = 'Q'
+    elsif fromPiece == 'p' and y == 0
+      fromPiece = 'q'
+    end
+
     # Now update both positions on the board array
     @board[y0][x0] = '.'
     @board[y][x]   = fromPiece
+
     return @board
   end
 
