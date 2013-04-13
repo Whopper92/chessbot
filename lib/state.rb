@@ -103,7 +103,7 @@ class State
     # Now update both positions on the board array
     aState[y0][x0] = '.'
     aState[y][x]   = fromPiece
-
+    return aState
   end
 
 
