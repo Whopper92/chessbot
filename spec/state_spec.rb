@@ -45,7 +45,7 @@ describe State do
   describe '#printBoard' do
     it 'should print a formatted version of the current board state' do
 
-      output = capture(:stdout) { @aState.printBoard }
+      output = capture(:stdout) { @aState.printBoard(@aState.instance_variable_get :@board) }
       output.should ==
       "#{@aState.instance_variable_get(:@turnCount)} #{@aState.instance_variable_get(:@onMove)}\n"\
         "kqbnr\n"\
@@ -61,7 +61,7 @@ describe State do
 
     it 'should update the board array based on a valid move' do
 
-      @aState.updateBoard(1,0,0,2).should ==
+      @aState.updateBoard(1,0,0,2,@aState.instance_variable_get(:@board)).should ==
         [["R", ".", "B", "Q", "K"],
          ["P", "P", "P", "P", "P"],
          ["N", ".", ".", ".", "."],
@@ -78,7 +78,7 @@ describe State do
                                               ["p", "P", "p", "p", "p"],
                                               ["k", ".", "b", "n", "r"]]
 
-      @aState.updateBoard(1,4,1,5).should ==
+      @aState.updateBoard(1,4,1,5, @aState.instance_variable_get(:@board)).should ==
         [["R", "N", "B", ".", "K"],
          ["P", "P", "P", "p", "P"],
          [".", ".", ".", ".", "."],
@@ -86,7 +86,7 @@ describe State do
          ["p", ".", "p", "p", "p"],
          ["k", "Q", "b", "n", "r"]]
 
-      @aState.updateBoard(3,1,3,0).should ==
+      @aState.updateBoard(3,1,3,0, @aState.instance_variable_get(:@board)).should ==
         [["R", "N", "B", "q", "K"],
          ["P", "P", "P", ".", "P"],
          [".", ".", ".", ".", "."],
@@ -100,8 +100,8 @@ describe State do
   describe '#move' do
     validMove = Move.new(Square.new(0,1), Square.new(0,2))
     it 'should update the board if a valid move is passed' do
-      @aState.should_receive(:updateBoard).with(0,1,0,2)
-      @aState.move(validMove)
+      @aState.should_receive(:updateBoard).with(0,1,0,2,@aState.instance_variable_get(:@board))
+      @aState.move(validMove, @aState.instance_variable_get(:@board))
       @aState.instance_variable_get(:@turnCount).should == 1
       @aState.instance_variable_get(:@onMove).should == 'B'
     end

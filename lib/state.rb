@@ -123,7 +123,7 @@ class State
         to  = aMove.decode('to')
         if (aState[pos[1]][pos[0]].upcase == aState[pos[1]][pos[0]] and @onMove == 'W') or # Valid white move
            (aState[pos[1]][pos[0]].upcase != aState[pos[1]][pos[0]] and @onMove == 'B') # Valid black move
-              updateBoard(pos[0], pos[1], to[0], to[1], @board)
+              updateBoard(pos[0], pos[1], to[0], to[1], aState)
               findAllMoves  # update the valid move list
               @turnCount = @turnCount.to_i + 1
               @onMove == 'W' ? @onMove = 'B' : @onMove = 'W'
