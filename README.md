@@ -2,9 +2,9 @@
 ## A Ruby Chess Engine by Will Hopper for CS 442
 
 ### Playing MiniChess
-To run a complete, random game:
+To run a complete, simulated game:
 
-    bin/game.rb random
+    bin/game.rb sim
 
 To play against Rooky:
 

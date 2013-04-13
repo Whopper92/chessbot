@@ -2,7 +2,7 @@
 
 require File.expand_path('../../lib/state.rb', __FILE__)
 
-if ARGV[0] == 'random'
+if ARGV[0] == 'sim'
   beginning = Time.now
   board = State.new()
   board.randomGame
