@@ -15,13 +15,13 @@ class State
     findAllMoves
   end
 
-  def printBoard(aState)
+  def printBoard
   # Print out a formatted version of the current state of the board
     puts "#{@turnCount} #{@onMove}"
     y = 5
     while y > - 1
       for x in 0..4
-        print aState[y][x]
+        print @board[y][x]
         x += 1
       end
       print "\n"
@@ -104,11 +104,10 @@ class State
     aState[y0][x0] = '.'
     aState[y][x]   = fromPiece
 
-    return aState
   end
 
 
-  def move(aMove, aState)
+  def move(aMove)
   # Accepts arguments of type move and type state. If the move is valid, this method
   # returns a new state. Invalid moves result in an exception
     isValid = false
@@ -121,9 +120,9 @@ class State
       if isValid == true
         pos = aMove.decode('from')
         to  = aMove.decode('to')
-        if (aState[pos[1]][pos[0]].upcase == aState[pos[1]][pos[0]] and @onMove == 'W') or # Valid white move
-           (aState[pos[1]][pos[0]].upcase != aState[pos[1]][pos[0]] and @onMove == 'B') # Valid black move
-              updateBoard(pos[0], pos[1], to[0], to[1], aState)
+        if (@board[pos[1]][pos[0]].upcase == @board[pos[1]][pos[0]] and @onMove == 'W') or # Valid white move
+           (@board[pos[1]][pos[0]].upcase != @board[pos[1]][pos[0]] and @onMove == 'B') # Valid black move
+              updateBoard(pos[0], pos[1], to[0], to[1], @board)
               findAllMoves  # update the valid move list
               @turnCount = @turnCount.to_i + 1
               @onMove == 'W' ? @onMove = 'B' : @onMove = 'W'
@@ -146,8 +145,8 @@ class State
   # Accept a move string as an argument and attempts to make the
   # move, if valid
     humanMove = decodeMvString(mvString)
-    move(humanMove, @board)
-
+    scoreGen(humanMove)
+    move(humanMove)
   end
 
   def moveScan(x0, y0, dx, dy, stopShort, capture)
@@ -356,7 +355,7 @@ class State
   # random moves for both sides
     while gameOver? == false do
       randomMove
-      printBoard(@board)
+      printBoard
       puts "\n"
     end
   end
@@ -374,7 +373,7 @@ class State
     humanColor == 'W' ? botColor = 'B': botColor = 'W'
 
     puts "\n"
-    printBoard(@board)
+    printBoard
     puts "\n"
 
     # Game loop
@@ -388,12 +387,12 @@ class State
         end
         humanMove(@movePick)
         puts "\n"
-        printBoard(@board)
+        printBoard
         puts "\n"
       else
         randomMove()
         puts "\n"
-        printBoard(@board)
+        printBoard
         puts "\n"
       end
 
@@ -406,8 +405,8 @@ class State
     moved = false
     loop do
       if colorOf(pickMove.decode('from')[0], pickMove.decode('from')[1]) == @onMove
-        #score = scoreGen(pickMove)
-        move(pickMove, @board)
+        score = scoreGen(pickMove)
+        move(pickMove)
         moved = true
       else
         pickMove = @allMoves.flatten.choice
@@ -450,22 +449,44 @@ class State
   # The score value is the score of the state that the opponent will receive,
   # so the lower the number the 'better' for the side onMove
 
-    curState = @board
-    pos = aMove.decode('from')
-    to  = aMove.decode('to')
-    nextState = updateBoard(pos[0], pos[1], to[0], to[1], curState)
-    puts "done"
-#    nextState = predictState(aMove, nextState) # Get a new state to calculate the score with
-    score = 10
-    return score
-  end
+    testBoard = Marshal.load(Marshal.dump(@board))
+    x0 = aMove.decode('from')[0]
+    y0 = aMove.decode('from')[1]
+    x  = aMove.decode('to')[0]
+    y  = aMove.decode('to')[1]
 
-  def predictState(aMove, aState)
-  # Accepts arguments of type move and type state. Returns a new state.
-  # Used to test a move and predict the state score it will produce.
-    pos = aMove.decode('from')
-    to  = aMove.decode('to')
-    return updateBoard(pos[0], pos[1], to[0], to[1], aState)
-  end
+    updateBoard(x0, y0, x, y, testBoard)
+    # Generate a score for this state --- enemy score - my score
+    whiteScore = 0
+    blackScore = 0
 
+    testBoard.flatten.each do |p|
+      case p
+        when 'P'
+          whiteScore += 100
+        when 'Q'
+          whiteScore += 900
+        when 'B'
+          whiteScore += 300
+        when 'N'
+          whiteScore += 300
+        when 'R'
+          whiteScore += 500
+        when 'p'
+          blackScore += 100
+        when 'q'
+          blackScore += 900
+        when 'b'
+          blackScore += 300
+        when 'n'
+          blackScore += 300
+        when 'r'
+          blackScore += 500
+      end
+    end
+    # Determine which player this score is for
+    @onMove == 'W' ? stateScore = blackScore - whiteScore : stateScore = whiteScore - blackScore
+    @onMove == 'W' ? nextPlayer = 'black' : nextPlayer = 'white'
+    puts "Score for #{nextPlayer}: #{stateScore}"
+  end
 end
