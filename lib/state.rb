@@ -15,13 +15,13 @@ class State
     findAllMoves
   end
 
-  def printBoard
+  def printBoard(aState)
   # Print out a formatted version of the current state of the board
     puts "#{@turnCount} #{@onMove}"
     y = 5
     while y > - 1
       for x in 0..4
-        print @board[y][x]
+        print aState[y][x]
         x += 1
       end
       print "\n"
@@ -88,10 +88,10 @@ class State
     self.findAllMoves # Update valid move list
   end
 
-  def updateBoard(x0, y0, x, y)
+  def updateBoard(x0, y0, x, y, aState)
   # Update the board based on a single valid move
-    fromPiece = @board[y0][x0]
-    toPiece   = @board[y][x]  # This may be useful later to determine what was captured
+    fromPiece = aState[y0][x0]
+    toPiece   = aState[y][x]  # This may be useful later to determine what was captured
 
     # If a pawn makes it the the opposite side of the board, promote to queen
     if fromPiece == 'P' and y == 5
@@ -101,14 +101,15 @@ class State
     end
 
     # Now update both positions on the board array
-    @board[y0][x0] = '.'
-    @board[y][x]   = fromPiece
+    aState[y0][x0] = '.'
+    aState[y][x]   = fromPiece
 
-    return @board
+    return aState
   end
 
-  def move(aMove)
-  # Accepts an argument of type move. If the move is valid, this method
+
+  def move(aMove, aState)
+  # Accepts arguments of type move and type state. If the move is valid, this method
   # returns a new state. Invalid moves result in an exception
     isValid = false
     @allMoves.each do |x|
@@ -120,9 +121,9 @@ class State
       if isValid == true
         pos = aMove.decode('from')
         to  = aMove.decode('to')
-        if (@board[pos[1]][pos[0]].upcase == @board[pos[1]][pos[0]] and @onMove == 'W') or # Valid white move
-           (@board[pos[1]][pos[0]].upcase != @board[pos[1]][pos[0]] and @onMove == 'B') # Valid black move
-              updateBoard(pos[0], pos[1], to[0], to[1])
+        if (aState[pos[1]][pos[0]].upcase == aState[pos[1]][pos[0]] and @onMove == 'W') or # Valid white move
+           (aState[pos[1]][pos[0]].upcase != aState[pos[1]][pos[0]] and @onMove == 'B') # Valid black move
+              updateBoard(pos[0], pos[1], to[0], to[1], @board)
               findAllMoves  # update the valid move list
               @turnCount = @turnCount.to_i + 1
               @onMove == 'W' ? @onMove = 'B' : @onMove = 'W'
@@ -145,7 +146,7 @@ class State
   # Accept a move string as an argument and attempts to make the
   # move, if valid
     humanMove = decodeMvString(mvString)
-    move(humanMove)
+    move(humanMove, @board)
 
   end
 
@@ -268,14 +269,22 @@ class State
         getMv = moveScan(x, y, -1, dir, stopShort, capture)  # See if a capture diag-left exists
         if getMv != nil
           getMv.each do |a|
-            foundMoves << a
+            colorPawn   = colorOf(a.decode('from')[1], a.decode('from')[0])
+            colorTarget = colorOf(a.decode('to')[1], a.decode('to')[0])
+            if colorTarget != 'empty' and colorPawn != colorTarget  # a valid capture
+              foundMoves << a
+            end
           end
         end
 
         getMv = moveScan(x, y, 1, dir, stopShort, capture)  # Now see if a capture diag-right exists
         if getMv != nil
           getMv.each do |a|
-            foundMoves << a
+            colorPawn   = colorOf(a.decode('from')[1], a.decode('from')[0])
+            colorTarget = colorOf(a.decode('to')[1], a.decode('to')[0])
+            if colorTarget != 'empty' and colorPawn != colorTarget  # a valid capture
+              foundMoves << a
+            end
           end
         end
 
@@ -347,7 +356,7 @@ class State
   # random moves for both sides
     while gameOver? == false do
       randomMove
-      printBoard
+      printBoard(@board)
       puts "\n"
     end
   end
@@ -365,7 +374,7 @@ class State
     humanColor == 'W' ? botColor = 'B': botColor = 'W'
 
     puts "\n"
-    printBoard
+    printBoard(@board)
     puts "\n"
 
     # Game loop
@@ -379,12 +388,12 @@ class State
         end
         humanMove(@movePick)
         puts "\n"
-        printBoard
+        printBoard(@board)
         puts "\n"
       else
         randomMove()
         puts "\n"
-        printBoard
+        printBoard(@board)
         puts "\n"
       end
 
@@ -397,7 +406,10 @@ class State
     moved = false
     loop do
       if colorOf(pickMove.decode('from')[0], pickMove.decode('from')[1]) == @onMove
-        move(pickMove)
+        #score = scoreGen(pickMove)
+        #puts score
+        #puts "now moving with #{pickMove}"
+        move(pickMove, @board)
         moved = true
       else
         pickMove = @allMoves.flatten.choice
@@ -434,4 +446,27 @@ class State
          return false
     end
   end
+
+  def scoreGen(aMove)
+  # Returns the score of a state the will exist if the given move is executed.
+  # The score value is the score of the state that the opponent will receive,
+  # so the lower the number the 'better' for the side onMove
+    nextState = []
+    @board.each do |p|
+      nextState << p
+    end
+    predictState(aMove, nextState)
+    puts "\n"
+    printBoard(nextState)
+    return 50
+  end
+
+  def predictState(aMove, aState)
+  # Accepts arguments of type move and type state. Returns a new state.
+  # Used to test a move and predict the state score it will produce.
+    pos = aMove.decode('from')
+    to  = aMove.decode('to')
+    #updateBoard(pos[0], pos[1], to[0], to[1], aState)
+  end
+
 end
