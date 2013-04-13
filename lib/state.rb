@@ -269,8 +269,8 @@ class State
         getMv = moveScan(x, y, -1, dir, stopShort, capture)  # See if a capture diag-left exists
         if getMv != nil
           getMv.each do |a|
-            colorPawn   = colorOf(a.decode('from')[1], a.decode('from')[0])
-            colorTarget = colorOf(a.decode('to')[1], a.decode('to')[0])
+            colorPawn   = colorOf(a.decode('from')[0], a.decode('from')[1])
+            colorTarget = colorOf(a.decode('to')[0], a.decode('to')[1])
             if colorTarget != 'empty' and colorPawn != colorTarget  # a valid capture
               foundMoves << a
             end
@@ -280,8 +280,8 @@ class State
         getMv = moveScan(x, y, 1, dir, stopShort, capture)  # Now see if a capture diag-right exists
         if getMv != nil
           getMv.each do |a|
-            colorPawn   = colorOf(a.decode('from')[1], a.decode('from')[0])
-            colorTarget = colorOf(a.decode('to')[1], a.decode('to')[0])
+            colorPawn   = colorOf(a.decode('from')[0], a.decode('from')[1])
+            colorTarget = colorOf(a.decode('to')[0], a.decode('to')[1])
             if colorTarget != 'empty' and colorPawn != colorTarget  # a valid capture
               foundMoves << a
             end
@@ -407,8 +407,6 @@ class State
     loop do
       if colorOf(pickMove.decode('from')[0], pickMove.decode('from')[1]) == @onMove
         #score = scoreGen(pickMove)
-        #puts score
-        #puts "now moving with #{pickMove}"
         move(pickMove, @board)
         moved = true
       else
@@ -451,14 +449,15 @@ class State
   # Returns the score of a state the will exist if the given move is executed.
   # The score value is the score of the state that the opponent will receive,
   # so the lower the number the 'better' for the side onMove
-    nextState = []
-    @board.each do |p|
-      nextState << p
-    end
-    predictState(aMove, nextState)
-    puts "\n"
-    printBoard(nextState)
-    return 50
+
+    curState = @board
+    pos = aMove.decode('from')
+    to  = aMove.decode('to')
+    nextState = updateBoard(pos[0], pos[1], to[0], to[1], curState)
+    puts "done"
+#    nextState = predictState(aMove, nextState) # Get a new state to calculate the score with
+    score = 10
+    return score
   end
 
   def predictState(aMove, aState)
@@ -466,7 +465,7 @@ class State
   # Used to test a move and predict the state score it will produce.
     pos = aMove.decode('from')
     to  = aMove.decode('to')
-    #updateBoard(pos[0], pos[1], to[0], to[1], aState)
+    return updateBoard(pos[0], pos[1], to[0], to[1], aState)
   end
 
 end
