@@ -354,7 +354,7 @@ class State
   # The bot will complete a single random game, picking
   # random moves for both sides
     while gameOver? == false do
-      randomMove
+      botMove
       printBoard
       puts "\n"
     end
@@ -390,7 +390,7 @@ class State
         printBoard
         puts "\n"
       else
-        randomMove()
+        botMove()
         puts "\n"
         printBoard
         puts "\n"
@@ -399,8 +399,22 @@ class State
     end
   end
 
-  def randomMove()
-  # Pick a random move based on the color of onMove
+  def botMove()
+  # Loop through each move for the proper color and determine which creates
+  # the worst score state for the opponent
+  pickMove = nil
+  finalScore = 10000
+  @allMoves.flatten.shuffle.each do |m|
+    if colorOf(m.decode('from')[0], m.decode('from')[1]) == @onMove # If proper color, check score
+      score = scoreGen(m)
+      if score < finalScore
+        pickMove = m
+        finalScore = score
+      end
+    end
+  end
+  move(pickMove)
+=begin
     pickMove = @allMoves.flatten.choice
     moved = false
     loop do
@@ -413,6 +427,7 @@ class State
       end
       break if moved == true
     end
+=end
   end
 
   def gameOver?
@@ -466,6 +481,8 @@ class State
           whiteScore += 100
         when 'Q'
           whiteScore += 900
+        when 'K'
+          whiteScore += 1000
         when 'B'
           whiteScore += 300
         when 'N'
@@ -476,6 +493,8 @@ class State
           blackScore += 100
         when 'q'
           blackScore += 900
+        when 'k'
+          blackScore += 1000
         when 'b'
           blackScore += 300
         when 'n'
@@ -487,6 +506,7 @@ class State
     # Determine which player this score is for
     @onMove == 'W' ? stateScore = blackScore - whiteScore : stateScore = whiteScore - blackScore
     @onMove == 'W' ? nextPlayer = 'black' : nextPlayer = 'white'
-    puts "Score for #{nextPlayer}: #{stateScore}"
+#    puts "Score for #{nextPlayer}: #{stateScore}"
+    return stateScore
   end
 end
