@@ -12,7 +12,7 @@ class State
     @onMove    = "W"
     @turnCount = 0
     newBoard
-    findAllMoves
+    findAllMoves(@board)
   end
 
   def printBoard
@@ -85,7 +85,7 @@ class State
     y += 1
     z -= 1
     end
-    self.findAllMoves # Update valid move list
+    findAllMoves(@board) # Update valid move list
   end
 
   def updateBoard(x0, y0, x, y, aState)
@@ -123,7 +123,7 @@ class State
         if (@board[pos[1]][pos[0]].upcase == @board[pos[1]][pos[0]] and @onMove == 'W') or # Valid white move
            (@board[pos[1]][pos[0]].upcase != @board[pos[1]][pos[0]] and @onMove == 'B') # Valid black move
               updateBoard(pos[0], pos[1], to[0], to[1], @board)
-              findAllMoves  # update the valid move list
+              findAllMoves(@board)  # update the valid move list
               @turnCount = @turnCount.to_i + 1
               @onMove == 'W' ? @onMove = 'B' : @onMove = 'W'
         else # Player moving out of order - throw exception
@@ -149,7 +149,7 @@ class State
     move(humanMove)
   end
 
-  def moveScan(x0, y0, dx, dy, stopShort, capture)
+  def moveScan(x0, y0, dx, dy, stopShort, capture, aState)
   # This method is called many times by the moveList method,
   # which passes in every combination of movement directions for
   # a given piece for a given square position.
@@ -162,7 +162,7 @@ class State
       x += dx
       y += dy
       break if not inBounds?(x, y)
-      if @board[y][x].to_s != '.'
+      if aState[y][x].to_s != '.'
         break if colorOf(x, y) == c  # Same color, so the move is invalid
         if capture == false
           break                        # We don't want to take this capture
@@ -178,11 +178,11 @@ class State
     return moves if moves != []
   end
 
-  def moveList(x, y)
+  def moveList(x, y, aState)
   # GRID SYSTEM: rows are y values, starting at 0 from the bottom
   # Columns are x values, starting at 0 from the left
   # Finds every valid move for a given piece
-    p = @board[y][x].upcase
+    p = aState[y][x].upcase
     foundMoves = []
     case p
       when 'K', 'Q'
@@ -191,7 +191,7 @@ class State
             next if dx == 0 and dy == 0
             p == 'K' ? stopShort = true : stopShort = false
             capture = true
-            getMv = moveScan(x, y, dx, dy, stopShort, capture)
+            getMv = moveScan(x, y, dx, dy, stopShort, capture, aState)
             if getMv != nil
               getMv.each do |a|
                 foundMoves << a
@@ -207,7 +207,7 @@ class State
         p == 'B' ? stopShort = true : stopShort = false
         p == 'B' ? capture   = false : capture   = true
         for i in 1..4
-          getMv = moveScan(x, y, dx, dy, stopShort, capture)
+          getMv = moveScan(x, y, dx, dy, stopShort, capture, aState)
           if getMv != nil
             getMv.each do |a|
               foundMoves << a
@@ -221,7 +221,7 @@ class State
           capture   = true
           stopShort = false
           for i in 1..4
-            getMv = moveScan(x, y, dx, dy, stopShort, capture)
+            getMv = moveScan(x, y, dx, dy, stopShort, capture, aState)
             if getMv != nil
               getMv.each do |a|
                 foundMoves << a
@@ -238,7 +238,7 @@ class State
         stopShort = true
         capture   =  true
         for i in 1..4
-          getMv = moveScan(x, y, dx, dy, stopShort, capture)
+          getMv = moveScan(x, y, dx, dy, stopShort, capture, aState)
           if getMv != nil
             getMv.each do |a|
               foundMoves << a
@@ -250,7 +250,7 @@ class State
         dx = -1
         dy - 2
         for i in 1..4
-          getMv = moveScan(x, y, dx, dy, stopShort, capture)
+          getMv = moveScan(x, y, dx, dy, stopShort, capture, aState)
           if getMv != nil
             getMv.each do |a|
               foundMoves << a
@@ -265,7 +265,7 @@ class State
         @board[y][x].upcase == @board[y][x] ? dir = 1 : dir = -1
         stopShort = true
         capture   = true
-        getMv = moveScan(x, y, -1, dir, stopShort, capture)  # See if a capture diag-left exists
+        getMv = moveScan(x, y, -1, dir, stopShort, capture, aState)  # See if a capture diag-left exists
         if getMv != nil
           getMv.each do |a|
             colorPawn   = colorOf(a.decode('from')[0], a.decode('from')[1])
@@ -276,7 +276,7 @@ class State
           end
         end
 
-        getMv = moveScan(x, y, 1, dir, stopShort, capture)  # Now see if a capture diag-right exists
+        getMv = moveScan(x, y, 1, dir, stopShort, capture, aState)  # Now see if a capture diag-right exists
         if getMv != nil
           getMv.each do |a|
             colorPawn   = colorOf(a.decode('from')[0], a.decode('from')[1])
@@ -288,7 +288,7 @@ class State
         end
 
         capture = false                                    # Lastly, see if the pawn can move forward
-        getMv = moveScan(x, y, 0, dir, stopShort, capture)
+        getMv = moveScan(x, y, 0, dir, stopShort, capture, aState)
         if getMv != nil
           getMv.each do |a|
             foundMoves << a
@@ -298,13 +298,13 @@ class State
     end
   end
 
-  def findAllMoves
+  def findAllMoves(aState)
     moves     = []
     @allMoves = []
 
     for y in 0..5
       for x in 0..4
-        moves << moveList(x, y)
+        moves << moveList(x, y, aState)
       end
     end
 
@@ -353,7 +353,7 @@ class State
   def randomGame
   # The bot will complete a single random game, picking
   # random moves for both sides
-    while gameOver? == false do
+    while gameOver?(@board) == false do
       botMove
       printBoard
       puts "\n"
@@ -377,7 +377,7 @@ class State
     puts "\n"
 
     # Game loop
-    while gameOver? == false do
+    while gameOver?(@board) == false do
       if @onMove == humanColor
         loop do
           puts "Enter a move command: "
@@ -430,12 +430,12 @@ class State
 =end
   end
 
-  def gameOver?
+  def gameOver?(aState)
   # Determine if too many turns have passed or if either King has
   # been captured
     wKing = false
     bKing = false
-    @board.flatten.each do |s|
+    aState.flatten.each do |s|
       wKing = true if s.to_s == 'K'
       bKing = true if s.to_s == 'k'
     end
@@ -505,7 +505,7 @@ class State
     end
     # Determine which player this score is for
     @onMove == 'W' ? stateScore = blackScore - whiteScore : stateScore = whiteScore - blackScore
-    @onMove == 'W' ? nextPlayer = 'black' : nextPlayer = 'white'
+#    @onMove == 'W' ? nextPlayer = 'black' : nextPlayer = 'white'
 #    puts "Score for #{nextPlayer}: #{stateScore}"
     return stateScore
   end

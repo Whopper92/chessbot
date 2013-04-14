@@ -109,7 +109,7 @@ describe State do
 
   describe '#moveScan' do
     it 'should return nothing if there are no valid moves' do
-      @aState.moveScan(0,0,0,1,true,true).should == nil
+      @aState.moveScan(0,0,0,1,true,true, (@aState.instance_variable_get(:@board))).should == nil
     end
 
     it 'should return an array of valid moves if there are any' do
@@ -121,7 +121,7 @@ describe State do
                                             ["k", "q", "b", "n", "r"]]
 
       i = 1
-      @aState.moveScan(0,0,0,1,false,true).each do |m|
+      @aState.moveScan(0,0,0,1,false,true, (@aState.instance_variable_get(:@board))).each do |m|
         m.should be_an_instance_of Move
         m.to_s.should == 'a1-a2' if i == 1
         m.to_s.should == 'a1-a3' if i == 2
@@ -131,83 +131,83 @@ describe State do
       end
     end
   end
-
+=begin
   describe '#moveList' do
 
     it 'should call moveScan in every direction for a king' do
-      @aState.should_receive(:moveScan).with(4,0,-1,-1,true,true)
-      @aState.should_receive(:moveScan).with(4,0,-1,0,true,true)
-      @aState.should_receive(:moveScan).with(4,0,-1,1,true,true)
-      @aState.should_receive(:moveScan).with(4,0,-0,-1,true,true)
-      @aState.should_receive(:moveScan).with(4,0,0,1,true,true)
-      @aState.should_receive(:moveScan).with(4,0,1,-1,true,true)
-      @aState.should_receive(:moveScan).with(4,0,1,0,true,true)
-      @aState.should_receive(:moveScan).with(4,0,1,1,true,true)
-      @aState.moveList(4,0)
+      @aState.should_receive(:moveScan).with(4,0,-1,-1,true,true, @aState.instance_variable_get(:@board))
+      @aState.should_receive(:moveScan).with(4,0,-1,0,true,true, @aState.instance_variable_get(:@board))
+      @aState.should_receive(:moveScan).with(4,0,-1,1,true,true, @aState.instance_variable_get(:@board))
+      @aState.should_receive(:moveScan).with(4,0,-0,-1,true,true, @aState.instance_variable_get(:@board))
+      @aState.should_receive(:moveScan).with(4,0,0,1,true,true, @aState.instance_variable_get(:@board))
+      @aState.should_receive(:moveScan).with(4,0,1,-1,true,true, @aState.instance_variable_get(:@board))
+      @aState.should_receive(:moveScan).with(4,0,1,0,true,true, @aState.instance_variable_get(:@board))
+      @aState.should_receive(:moveScan).with(4,0,1,1,true,true, @aState.instance_variable_get(:@board))
+      @aState.moveList(4,0, @aState)
     end
 
     it 'should call moveScan in every direction for a queen' do
-      @aState.should_receive(:moveScan).with(3,0,-1,-1,false,true)
-      @aState.should_receive(:moveScan).with(3,0,-1,0,false,true)
-      @aState.should_receive(:moveScan).with(3,0,-1,1,false,true)
-      @aState.should_receive(:moveScan).with(3,0,-0,-1,false,true)
-      @aState.should_receive(:moveScan).with(3,0,0,1,false,true)
-      @aState.should_receive(:moveScan).with(3,0,1,-1,false,true)
-      @aState.should_receive(:moveScan).with(3,0,1,0,false,true)
-      @aState.should_receive(:moveScan).with(3,0,1,1,false,true)
-      @aState.moveList(3,0)
+      @aState.should_receive(:moveScan).with(3,0,-1,-1,false,true, @aState.instance_variable_get(:@board))
+      @aState.should_receive(:moveScan).with(3,0,-1,0,false,true, @aState.instance_variable_get(:@board))
+      @aState.should_receive(:moveScan).with(3,0,-1,1,false,true, @aState.instance_variable_get(:@board))
+      @aState.should_receive(:moveScan).with(3,0,-0,-1,false,true, @aState.instance_variable_get(:@board))
+      @aState.should_receive(:moveScan).with(3,0,0,1,false,true, @aState.instance_variable_get(:@board))
+      @aState.should_receive(:moveScan).with(3,0,1,-1,false,true, @aState.instance_variable_get(:@board))
+      @aState.should_receive(:moveScan).with(3,0,1,0,false,true, @aState.instance_variable_get(:@board))
+      @aState.should_receive(:moveScan).with(3,0,1,1,false,true, @aState.instance_variable_get(:@board))
+      @aState.moveList(3,0, @aState)
 
     end
 
     it 'should call moveScan in NSWE for a rook' do
-      @aState.should_receive(:moveScan).with(0,0,1,0,false,true)
-      @aState.should_receive(:moveScan).with(0,0,0,1,false,true)
-      @aState.should_receive(:moveScan).with(0,0,-1,0,false,true)
-      @aState.should_receive(:moveScan).with(0,0,-0,-1,false,true)
-      @aState.moveList(0,0)
+      @aState.should_receive(:moveScan).with(0,0,1,0,false,true, @aState.instance_variable_get(:@board))
+      @aState.should_receive(:moveScan).with(0,0,0,1,false,true, @aState.instance_variable_get(:@board))
+      @aState.should_receive(:moveScan).with(0,0,-1,0,false,true, @aState.instance_variable_get(:@board))
+      @aState.should_receive(:moveScan).with(0,0,-0,-1,false,true, @aState.instance_variable_get(:@board))
+      @aState.moveList(0,0, @aState.instance_variable_get(:@board))
     end
 
     it 'should call moveScan in every direction for a Bishop' do
-      @aState.should_receive(:moveScan).with(2,0,1,0,true,false)
-      @aState.should_receive(:moveScan).with(2,0,0,1,true,false)
-      @aState.should_receive(:moveScan).with(2,0,-1,0,true,false)
-      @aState.should_receive(:moveScan).with(2,0,-0,-1,true,false)
-      @aState.should_receive(:moveScan).with(2,0,1,1,false,true)
-      @aState.should_receive(:moveScan).with(2,0,1,-1,false,true)
-      @aState.should_receive(:moveScan).with(2,0,-1,1,false,true)
-      @aState.should_receive(:moveScan).with(2,0,-1,-1,false,true)
-      @aState.moveList(2,0)
+      @aState.should_receive(:moveScan).with(2,0,1,0,true,false, @aState.instance_variable_get(:@board))
+      @aState.should_receive(:moveScan).with(2,0,0,1,true,false, @aState.instance_variable_get(:@board))
+      @aState.should_receive(:moveScan).with(2,0,-1,0,true,false, @aState.instance_variable_get(:@board))
+      @aState.should_receive(:moveScan).with(2,0,-0,-1,true,false, @aState.instance_variable_get(:@board))
+      @aState.should_receive(:moveScan).with(2,0,1,1,false,true, @aState.instance_variable_get(:@board))
+      @aState.should_receive(:moveScan).with(2,0,1,-1,false,true, @aState.instance_variable_get(:@board))
+      @aState.should_receive(:moveScan).with(2,0,-1,1,false,true, @aState.instance_variable_get(:@board))
+      @aState.should_receive(:moveScan).with(2,0,-1,-1,false,true, @aState.instance_variable_get(:@board))
+      @aState.moveList(2,0, @aState.instance_variable_get(:@board))
     end
 
     it 'should call moveScan in eight directions for Knights' do
-      @aState.should_receive(:moveScan).with(1,0,1,2,true,true)
-      @aState.should_receive(:moveScan).with(1,0,1,-2,true,true)
-      @aState.should_receive(:moveScan).with(1,0,-1,2,true,true)
-      @aState.should_receive(:moveScan).with(1,0,-1,-2,true,true)
-      @aState.should_receive(:moveScan).with(1,0,2,1,true,true)
-      @aState.should_receive(:moveScan).with(1,0,2,-1,true,true)
-      @aState.should_receive(:moveScan).with(1,0,-2,1,true,true)
-      @aState.should_receive(:moveScan).with(1,0,-2,-1,true,true)
-      @aState.moveList(1,0)
+      @aState.should_receive(:moveScan).with(1,0,1,2,true,true, @aState.instance_variable_get(:@board))
+      @aState.should_receive(:moveScan).with(1,0,1,-2,true,true, @aState.instance_variable_get(:@board))
+      @aState.should_receive(:moveScan).with(1,0,-1,2,true,true, @aState.instance_variable_get(:@board))
+      @aState.should_receive(:moveScan).with(1,0,-1,-2,true,true, @aState.instance_variable_get(:@board))
+      @aState.should_receive(:moveScan).with(1,0,2,1,true,true, @aState.instance_variable_get(:@board))
+      @aState.should_receive(:moveScan).with(1,0,2,-1,true,true, @aState.instance_variable_get(:@board)
+      @aState.should_receive(:moveScan).with(1,0,-2,1,true,true, @aState.instance_variable_get :@board)
+      @aState.should_receive(:moveScan).with(1,0,-2,-1,true,true, @aState.instance_variable_get(:@board))
+      @aState.moveList(1,0, @aState.instance_variable_get(:@board))
     end
 
     it 'should call moveScan in three directions for white Pawns' do
-      @aState.should_receive(:moveScan).with(0,1,0,1,true,false)
-      @aState.should_receive(:moveScan).with(0,1,-1,1,true,true)
-      @aState.should_receive(:moveScan).with(0,1,1,1,true,true)
-      @aState.moveList(0,1)
+      @aState.should_receive(:moveScan).with(0,1,0,1,true,false, @aState.instance_variable_get(:@board))
+      @aState.should_receive(:moveScan).with(0,1,-1,1,true,true, @aState.instance_variable_get(:@board))
+      @aState.should_receive(:moveScan).with(0,1,1,1,true,true, @aState.instance_variable_get(:@board))
+      @aState.moveList(0,1, @aState.instance_variable_get(:@board))
     end
 
     it 'should call moveScan in three directions for black Pawns' do
-      @aState.should_receive(:moveScan).with(0,4,0,-1,true,false)
-      @aState.should_receive(:moveScan).with(0,4,-1,-1,true,true)
-      @aState.should_receive(:moveScan).with(0,4,1,-1,true,true)
-      @aState.moveList(0,4)
+      @aState.should_receive(:moveScan).with(0,4,0,-1,true,false, @aState.instance_variable_get(:@board))
+      @aState.should_receive(:moveScan).with(0,4,-1,-1,true,true, @aState.instance_variable_get(:@board))
+      @aState.should_receive(:moveScan).with(0,4,1,-1,true,true, @aState.instance_variable_get(:@board))
+      @aState.moveList(0,4, @aState.instance_variable_get(:@board))
 
     end
 
   end
-
+=end
   describe '#colorOf' do
     it 'should return the proper color of the piece on a given board index' do
       @aState.colorOf(0,0).should == 'W'
@@ -247,12 +247,12 @@ describe State do
                                               [".", ".", ".", ".", "."],
                                               ["p", "p", "p", "p", "p"],
                                               ["k", "q", "b", "n", "r"]]
-      @aState.gameOver?.should == true
+      @aState.gameOver?(@aState.instance_variable_get(:@board)).should == true
     end
 
     it 'should return true if the move count exceeds the maximum number of moves' do
       @aState.instance_variable_set :@turnCount, 81
-      @aState.gameOver?.should == true
+      @aState.gameOver?((@aState.instance_variable_get(:@board))).should == true
     end
 
     it 'should return false if both kings are alive and 40 moves have not passed' do
@@ -263,7 +263,7 @@ describe State do
                                               [".", ".", ".", ".", "."],
                                               ["p", "p", "p", "p", "p"],
                                               ["k", "q", "b", "n", "r"]]
-      @aState.gameOver?.should == false
+      @aState.gameOver?((@aState.instance_variable_get(:@board))).should == false
     end
   end
 
