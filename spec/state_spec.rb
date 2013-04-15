@@ -210,9 +210,9 @@ describe State do
 =end
   describe '#colorOf' do
     it 'should return the proper color of the piece on a given board index' do
-      @aState.colorOf(0,0).should == 'W'
-      @aState.colorOf(0,4).should == 'B'
-      @aState.colorOf(2,2).should == 'empty'
+      @aState.colorOf(0,0, @aState.instance_variable_get(:@board)).should == 'W'
+      @aState.colorOf(0,4, @aState.instance_variable_get(:@board)).should == 'B'
+      @aState.colorOf(2,2, @aState.instance_variable_get(:@board)).should == 'empty'
     end
   end
 

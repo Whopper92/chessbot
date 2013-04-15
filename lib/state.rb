@@ -8,7 +8,7 @@ class State
 
   def initialize
     @maxTurns       = 80
-    @maxSearchDepth = 2
+    @maxSearchDepth = 3
     @moveList       = []         # All moves valid from this state
     @onMove         = "W"
     @turnCount      = 0
