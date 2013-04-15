@@ -7,12 +7,13 @@ require File.expand_path('../exceptions.rb', __FILE__)
 class State
 
   def initialize
-    @maxTurns  = 80
-    @moveList  = [] # All moves valid from this state
-    @onMove    = "W"
-    @turnCount = 0
+    @maxTurns       = 80
+    @maxSearchDepth = 2
+    @moveList       = []         # All moves valid from this state
+    @onMove         = "W"
+    @turnCount      = 0
     newBoard
-    findAllMoves(@board)
+    @allMoves       = findAllMoves(@board)
   end
 
   def printBoard
@@ -47,7 +48,16 @@ class State
     @blackKnightSym  = 'n'
     @blackRookSym    = 'r'
     @blackPawnSym    = 'p'
-
+=begin
+    @board = [
+      ['.', 'K', '.', '.', '.'],
+      ['.', 'p', '.', '.', '.'],
+      ['.', '.', 'p', '.', '.'],
+      ['.', '.', '.', '.', '.'],
+      ['.', '.', '.', '.', '.'],
+      ['.', 'k', '.', '.', '.']
+    ]
+=end
     @board = [
       ['R', 'N', 'B', 'Q', 'K'],
       ['P', 'P', 'P', 'P', 'P'],
@@ -56,7 +66,6 @@ class State
       ['p', 'p', 'p', 'p', 'p'],
       ['k', 'q', 'b', 'n', 'r']
     ]
-
   end
 
   def getState
@@ -64,7 +73,7 @@ class State
   # Note: It is unclear as to where this board will come from, so this method
   # implements the read as if the data were in a file
     @newBoard  = []
-    File.open('test_state.txt').each do |line|
+    File.open('data/test_state.txt').each do |line|
       @newBoard << line[0...-1].split('')
     end
 
@@ -85,7 +94,7 @@ class State
     y += 1
     z -= 1
     end
-    findAllMoves(@board) # Update valid move list
+    @allMoves = findAllMoves(@board) # Update valid move list
   end
 
   def updateBoard(x0, y0, x, y, aState)
@@ -123,7 +132,7 @@ class State
         if (@board[pos[1]][pos[0]].upcase == @board[pos[1]][pos[0]] and @onMove == 'W') or # Valid white move
            (@board[pos[1]][pos[0]].upcase != @board[pos[1]][pos[0]] and @onMove == 'B') # Valid black move
               updateBoard(pos[0], pos[1], to[0], to[1], @board)
-              findAllMoves(@board)  # update the valid move list
+              @allMoves = findAllMoves(@board)  # update the valid move list
               @turnCount = @turnCount.to_i + 1
               @onMove == 'W' ? @onMove = 'B' : @onMove = 'W'
         else # Player moving out of order - throw exception
@@ -145,7 +154,7 @@ class State
   # Accept a move string as an argument and attempts to make the
   # move, if valid
     humanMove = decodeMvString(mvString)
-    scoreGen(humanMove)
+    scoreGen(humanMove, nil)
     move(humanMove)
   end
 
@@ -155,7 +164,7 @@ class State
   # a given piece for a given square position.
     x = x0
     y = y0
-    c = colorOf(x,y)
+    c = colorOf(x,y, aState)
     moves     = []
     validMove = []
     loop do
@@ -163,7 +172,7 @@ class State
       y += dy
       break if not inBounds?(x, y)
       if aState[y][x].to_s != '.'
-        break if colorOf(x, y) == c  # Same color, so the move is invalid
+        break if colorOf(x, y, aState) == c  # Same color, so the move is invalid
         if capture == false
           break                        # We don't want to take this capture
         else
@@ -262,14 +271,14 @@ class State
         return foundMoves
 
       when 'P'
-        @board[y][x].upcase == @board[y][x] ? dir = 1 : dir = -1
+        aState[y][x].upcase == aState[y][x] ? dir = 1 : dir = -1
         stopShort = true
         capture   = true
         getMv = moveScan(x, y, -1, dir, stopShort, capture, aState)  # See if a capture diag-left exists
         if getMv != nil
           getMv.each do |a|
-            colorPawn   = colorOf(a.decode('from')[0], a.decode('from')[1])
-            colorTarget = colorOf(a.decode('to')[0], a.decode('to')[1])
+            colorPawn   = colorOf(a.decode('from')[0], a.decode('from')[1], aState)
+            colorTarget = colorOf(a.decode('to')[0], a.decode('to')[1], aState)
             if colorTarget != 'empty' and colorPawn != colorTarget  # a valid capture
               foundMoves << a
             end
@@ -279,8 +288,8 @@ class State
         getMv = moveScan(x, y, 1, dir, stopShort, capture, aState)  # Now see if a capture diag-right exists
         if getMv != nil
           getMv.each do |a|
-            colorPawn   = colorOf(a.decode('from')[0], a.decode('from')[1])
-            colorTarget = colorOf(a.decode('to')[0], a.decode('to')[1])
+            colorPawn   = colorOf(a.decode('from')[0], a.decode('from')[1], aState)
+            colorTarget = colorOf(a.decode('to')[0], a.decode('to')[1], aState)
             if colorTarget != 'empty' and colorPawn != colorTarget  # a valid capture
               foundMoves << a
             end
@@ -299,8 +308,8 @@ class State
   end
 
   def findAllMoves(aState)
-    moves     = []
-    @allMoves = []
+    moves  = []
+    checkState = []
 
     for y in 0..5
       for x in 0..4
@@ -309,16 +318,16 @@ class State
     end
 
     moves.each do |a|
-      @allMoves << a if a != [] and a != nil
+      checkState << a if a != [] and a != nil
     end
-    #puts @allMoves
+    return checkState
   end
 
-  def colorOf(x, y)
+  def colorOf(x, y, aState)
   # Determine the color a piece on a given square
-    if @board[y][x].to_s == @board[y][x].to_s.upcase and @board[y][x] != '.'
+    if aState[y][x].to_s == aState[y][x].to_s.upcase and aState[y][x] != '.'
       return 'W'
-    elsif @board[y][x].to_s != @board[y][x].to_s.upcase and @board[y][x] != '.'
+    elsif aState[y][x].to_s != aState[y][x].to_s.upcase and aState[y][x] != '.'
       return 'B'
     else
       return 'empty'
@@ -353,6 +362,7 @@ class State
   def randomGame
   # The bot will complete a single random game, picking
   # random moves for both sides
+#    botMove
     while gameOver?(@board) == false do
       botMove
       printBoard
@@ -400,34 +410,10 @@ class State
   end
 
   def botMove()
-  # Loop through each move for the proper color and determine which creates
-  # the worst score state for the opponent
-  pickMove = nil
-  finalScore = 10000
-  @allMoves.flatten.shuffle.each do |m|
-    if colorOf(m.decode('from')[0], m.decode('from')[1]) == @onMove # If proper color, check score
-      score = scoreGen(m)
-      if score < finalScore
-        pickMove = m
-        finalScore = score
-      end
-    end
-  end
-  move(pickMove)
-=begin
-    pickMove = @allMoves.flatten.choice
-    moved = false
-    loop do
-      if colorOf(pickMove.decode('from')[0], pickMove.decode('from')[1]) == @onMove
-        score = scoreGen(pickMove)
-        move(pickMove)
-        moved = true
-      else
-        pickMove = @allMoves.flatten.choice
-      end
-      break if moved == true
-    end
-=end
+    @onMove == 'W' ? color = 1 : color = -1
+    bestScore = negamax(@board, 0, color)
+    puts @bestMove
+    move(@bestMove)
   end
 
   def gameOver?(aState)
@@ -459,18 +445,30 @@ class State
     end
   end
 
-  def scoreGen(aMove)
-  # Returns the score of a state the will exist if the given move is executed.
-  # The score value is the score of the state that the opponent will receive,
-  # so the lower the number the 'better' for the side onMove
-
-    testBoard = Marshal.load(Marshal.dump(@board))
+  def checkState(aState, aMove)
+  # Returns a state that would exist should the move argument be taken
+    testBoard = Marshal.load(Marshal.dump(aState))
     x0 = aMove.decode('from')[0]
     y0 = aMove.decode('from')[1]
     x  = aMove.decode('to')[0]
     y  = aMove.decode('to')[1]
-
     updateBoard(x0, y0, x, y, testBoard)
+    return testBoard
+  end
+
+  def scoreGen(aMove=nil, aState=nil)
+  # Returns the score of a state the will exist if the given move is executed.
+  # The score value is the score of the state that the opponent will receive,
+  # so the lower the number the 'better' for the side onMove
+
+    if aMove != nil and aState == nil
+      testBoard = checkState(@board, aMove)
+    end
+
+    if aMove == nil and aState != nil
+      testBoard = Marshal.load(Marshal.dump(aState))
+    end
+
     # Generate a score for this state --- enemy score - my score
     whiteScore = 0
     blackScore = 0
@@ -490,23 +488,85 @@ class State
         when 'R'
           whiteScore += 500
         when 'p'
-          blackScore += 100
+          blackScore -= 100
         when 'q'
-          blackScore += 900
+          blackScore -= 900
         when 'k'
-          blackScore += 1000
+          blackScore -= 1000
         when 'b'
-          blackScore += 300
+          blackScore -= 300
         when 'n'
-          blackScore += 300
+          blackScore -= 300
         when 'r'
-          blackScore += 500
+          blackScore -= 500
       end
     end
+    stateScore = whiteScore + blackScore
     # Determine which player this score is for
-    @onMove == 'W' ? stateScore = blackScore - whiteScore : stateScore = whiteScore - blackScore
+#      stateScore = whiteScore - blackScore
+#    @onMove == 'W' ? stateScore = blackScore - whiteScore : stateScore = whiteScore - blackScore
 #    @onMove == 'W' ? nextPlayer = 'black' : nextPlayer = 'white'
 #    puts "Score for #{nextPlayer}: #{stateScore}"
     return stateScore
+  end
+
+  def negamax(aState, depth, color)
+    # Takes a list of all valid moves for a given player as an argument, as well
+    # as a maximum depth to search
+    # The color argument is taken as either 1 for white or -1 for black, and
+    # is used to generate all valid moves for either player at a given state
+    return color * scoreGen(nil, aState) if gameOver?(aState) or depth > @maxSearchDepth
+
+    bestValue      = -20000
+    checkMoves = []
+    stateMoves = []
+
+    checkMoves = findPlayerMoves(aState, color)
+    checkMoves.flatten.each do |m|
+      if m != [] and m != nil
+        stateMoves << m
+      end
+    end
+
+    # Debugging
+    color == 1 ? bugCol = 'white' : bugCol = 'black'
+
+    stateMoves.flatten.each do |m|
+#      puts "#{bugCol}: I am trying move: #{m}--->" if depth == 0
+#      puts "    #{bugCol}: I am trying move:  #{m}---> #{bestValue}" if depth == 1
+#      puts "        #{bugCol}: I am trying move:  #{m}---> #{bestValue}" if depth == 2
+#      puts "            #{bugCol}: I am trying move:  #{m}---> #{bestValue}" if depth == 3
+
+
+      testState = checkState(aState, m)
+      score = -(negamax(testState, depth + 1, -color))
+      if score > bestValue
+        bestValue = score
+        @bestMove = m if depth == 0
+      end
+    end
+    return bestValue
+  end
+
+  def findPlayerMoves(aState, color)
+  # Accepts a 1 for white or -1 for black and returns a list of valid moves for that player
+    validPlayerMoves = []
+    allValidMoves = findAllMoves(aState)
+    allValidMoves.flatten.each do |m|
+      if m != nil and m != []
+        x = m.decode('from')[0]
+        y = m.decode('from')[1]
+        if color == 1
+          if (aState[y][x].upcase == aState[y][x]) # Valid white move
+            validPlayerMoves << m
+          end
+        elsif color == -1
+          if (aState[y][x].upcase != aState[y][x]) # Valid black move
+            validPlayerMoves << m
+          end
+        end
+      end
+    end
+    return validPlayerMoves
   end
 end

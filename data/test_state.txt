@@ -1,8 +1,8 @@
 0 W
-kq.nr
+k..nr
 .bppp
 pp...
-..P.P
+q.P.P
 .P.P.
 RNBQK
 
