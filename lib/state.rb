@@ -8,16 +8,16 @@ class State
 
   def initialize
     @maxTurns       = 80
-    @maxSearchTime  = 1         # number of seconds the bot has to search for a move
-    @moveList       = []         # All moves valid from this state
+    @maxSearchTime  = 1                    # Time limit for negamax move search
     @onMove         = "W"
     @turnCount      = 0
     newBoard
-    @allMoves       = findAllMoves(@board)
+    @allMoves       = findAllMoves(@board) # A list of all valid moves from this state
   end
 
   def printBoard
   # Print out a formatted version of the current state of the board
+    puts "\n"
     puts "#{@turnCount} #{@onMove}"
     y = 5
     while y > - 1
@@ -28,6 +28,7 @@ class State
       print "\n"
       y -= 1
     end
+    puts "\n"
   end
 
   def newBoard
@@ -48,16 +49,6 @@ class State
     @blackKnightSym  = 'n'
     @blackRookSym    = 'r'
     @blackPawnSym    = 'p'
-=begin
-    @board = [
-      ['.', 'K', '.', '.', '.'],
-      ['.', 'p', '.', '.', '.'],
-      ['.', '.', 'p', '.', '.'],
-      ['.', '.', '.', '.', '.'],
-      ['.', '.', '.', '.', '.'],
-      ['.', 'k', '.', '.', '.']
-    ]
-=end
     @board = [
       ['R', 'N', 'B', 'Q', 'K'],
       ['P', 'P', 'P', 'P', 'P'],
@@ -70,8 +61,6 @@ class State
 
   def getState
   # Reads in a full string representation of the board
-  # Note: It is unclear as to where this board will come from, so this method
-  # implements the read as if the data were in a file
     @newBoard  = []
     File.open('data/test_state.txt').each do |line|
       @newBoard << line[0...-1].split('')
@@ -82,7 +71,7 @@ class State
 
   def writeBoard(curBoard)
   # Takes string from request called in getState to update the current board
-  # based on a full string representation of the opponent's board
+  # based on a full string representation of a board
     @turnCount = curBoard[0][0]
     @onMove    = curBoard[0][2]
 
@@ -100,7 +89,7 @@ class State
   def updateBoard(x0, y0, x, y, aState)
   # Update the board based on a single valid move
     fromPiece = aState[y0][x0]
-    toPiece   = aState[y][x]  # This may be useful later to determine what was captured
+    toPiece   = aState[y][x]
 
     # If a pawn makes it the the opposite side of the board, promote to queen
     if fromPiece == 'P' and y == 5
@@ -122,8 +111,7 @@ class State
     while gameOver?(@board) == false do
       botMove(depth)
       printBoard
-      puts "\n"
-#      depth == 2 ? depth =  : depth = 2
+      #depth == 2 ? depth =  : depth = 2
     end
   end
 
@@ -139,9 +127,7 @@ class State
       break if humanColor == 'W' or humanColor.to_s == 'B'
     end
     humanColor == 'W' ? botColor = 'B': botColor = 'W'
-    puts "\n"
     printBoard
-    puts "\n"
     # Game loop
     while gameOver?(@board) == false do
       if @onMove == humanColor
@@ -152,33 +138,29 @@ class State
           break if validMove?(@movePick)
         end
         humanMove(@movePick)
-        puts "\n"
         printBoard
-        puts "\n"
       else
         botMove(depth)
-        puts "\n"
         printBoard
-        puts "\n"
       end
     end
   end
 
   def botMove(depth)
-  # Finds the bests move for the bot given some time constraint and executes it
+  # Finds the bests move for the bot given some time constraint and executes said move
 
     @onMove == 'W' ? color = 1 : color = -1
     @nodes = 0
-    maxSearchDepth = 1                      # Start at search depth 1
+    maxSearchDepth = 1                                     # Start at search depth 1
     beginning   = Time.now
     currentTime = Time.now - beginning
 
     while currentTime < @maxSearchTime
       currentTime = Time.now - beginning
       negamax(@board, 0, color, beginning, maxSearchDepth)
-      puts "Reached depth: #{maxSearchDepth}"
-      puts @bestMove
-      maxSearchDepth += 1                   # Search another level if we have time
+      #puts "Reached depth: #{maxSearchDepth}"
+      #puts @bestMove
+      maxSearchDepth += 1                                  # Search another level if we have time
     end
     puts "\nChecked #{@nodes} nodes in #{Time.now - beginning} seconds.\n\n"
     puts @bestMove
@@ -186,8 +168,7 @@ class State
   end
 
   def humanMove(mvString)
-  # Accept a move string as an argument and attempts to make the
-  # move, if valid
+  # Accept a move string as an argument and attempts to make the move, if valid
     humanMove = decodeMvString(mvString)
     scoreGen(humanMove, nil)
     move(humanMove)
@@ -209,9 +190,9 @@ class State
       if aState[y][x].to_s != '.'
         break if colorOf(x, y, aState) == c  # Same color, so the move is invalid
         if capture == false
-          break                        # We don't want to take this capture
+          break                              # We don't want to take this capture
         else
-          stopShort = true             # the capture move is valid
+          stopShort = true                   # the capture move is valid
         end
       end
       validMove = Move.new(Square.new(x0, y0), Square.new(x, y))
@@ -349,9 +330,10 @@ class State
 
     currentTime = Time.now - beginTime
     @nodes += 1 if depth > maxSearchDepth
-    return color * scoreGen(nil, aState) if gameOver?(aState) or depth > maxSearchDepth or currentTime > @maxSearchTime
+    return color * scoreGen(nil, aState) if gameOver?(aState) or
+           depth > maxSearchDepth or currentTime > @maxSearchTime
 
-    bestValue      = -20000
+    bestValue  = -20000
     checkMoves = []
     stateMoves = []
 
@@ -363,17 +345,21 @@ class State
     end
 
     color == 1 ? bugCol = 'white' : bugCol = 'black'
-
     stateMoves.flatten.each do |m|
-       @nodes += 1 # Stats: determine how many states are checked
+      @nodes += 1 # Stats: determine how many states are checked
 
-       # Useful debugging info. Append to a file to check calls
-       #      puts "#{bugCol}: I am trying move: #{m}--->" if depth == 0
-       #      puts "    #{bugCol}: I am trying move:  #{m}---> #{bestValue}" if depth == 1
-       #      puts "        #{bugCol}: I am trying move:  #{m}---> #{bestValue}" if depth == 2
-       #      puts "            #{bugCol}: I am trying move:  #{m}---> #{bestValue}" if depth == 3
+      # Useful debugging info. Append to a file to check calls
+      #      puts "#{bugCol}: I am trying move: #{m}--->" if depth == 0
+      #      puts "    #{bugCol}: I am trying move:  #{m}---> #{bestValue}" if depth == 1
+      #      puts "        #{bugCol}: I am trying move:  #{m}---> #{bestValue}" if depth == 2
+      #      puts "            #{bugCol}: I am trying move:  #{m}---> #{bestValue}" if depth == 3
+      x0        = m.decode('from')[0]
+      y0        = m.decode('from')[1]
+      x         = m.decode('to')[0]
+      y         = m.decode('to')[1]
+      testBoard = Marshal.load(Marshal.dump(aState))
+      testState = updateBoard(x0, y0, x, y, testBoard)
 
-      testState = checkState(aState, m)
       score = -(negamax(testState, depth + 1, -color, beginTime, maxSearchDepth))
       if score > bestValue
         bestValue = score
@@ -419,7 +405,7 @@ class State
 
   def findAllMoves(aState)
   # Return an array of every single move possible for any given state, regardless of color
-    moves  = []
+    moves      = []
     checkState = []
 
     for y in 0..5
@@ -576,7 +562,6 @@ class State
       y    = mvString[4].chr.to_i - 1
 
       newMove = Move.new(Square.new(x0, y0), Square.new(x, y))
-
       return newMove
     end
   end
