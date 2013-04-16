@@ -38,7 +38,6 @@ describe State do
     it 'should initialize a new board array' do
       @aState.should be_an_instance_of State
       @aState.instance_variable_get(:@maxTurns).should == 80
-      @aState.instance_variable_get(:@moveList).should == []
     end
   end
 
@@ -47,13 +46,13 @@ describe State do
 
       output = capture(:stdout) { @aState.printBoard }
       output.should ==
-      "#{@aState.instance_variable_get(:@turnCount)} #{@aState.instance_variable_get(:@onMove)}\n"\
+      "\n#{@aState.instance_variable_get(:@turnCount)} #{@aState.instance_variable_get(:@onMove)}\n"\
         "kqbnr\n"\
         "ppppp\n"\
         ".....\n"\
         ".....\n"\
         "PPPPP\n"\
-        "RNBQK\n"
+        "RNBQK\n\n"
     end
   end
 
