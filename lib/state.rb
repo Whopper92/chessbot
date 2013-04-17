@@ -329,37 +329,22 @@ class State
     # is used to generate all valid moves for either player at a given state
 
     currentTime = Time.now - beginTime
-    @nodes += 1 if depth > maxSearchDepth
+    @nodes += 1 if depth > maxSearchDepth or currentTime >= @maxSearchTime
     return color * scoreGen(nil, aState) if gameOver?(aState) or
-           depth > maxSearchDepth or currentTime > @maxSearchTime
+           depth > maxSearchDepth or currentTime >= @maxSearchTime
 
     bestValue  = -20000
-    checkMoves = []
-    stateMoves = []
-
-    checkMoves = findPlayerMoves(aState, color)
-    checkMoves.flatten.each do |m|
-      if m != [] and m != nil
-        stateMoves << m
-      end
-    end
-
+    stateMoves = findPlayerMoves(aState, color)
     color == 1 ? bugCol = 'white' : bugCol = 'black'
+
     stateMoves.flatten.each do |m|
       @nodes += 1 # Stats: determine how many states are checked
-
       # Useful debugging info. Append to a file to check calls
       #      puts "#{bugCol}: I am trying move: #{m}--->" if depth == 0
       #      puts "    #{bugCol}: I am trying move:  #{m}---> #{bestValue}" if depth == 1
       #      puts "        #{bugCol}: I am trying move:  #{m}---> #{bestValue}" if depth == 2
       #      puts "            #{bugCol}: I am trying move:  #{m}---> #{bestValue}" if depth == 3
-      x0        = m.decode('from')[0]
-      y0        = m.decode('from')[1]
-      x         = m.decode('to')[0]
-      y         = m.decode('to')[1]
-      testBoard = Marshal.load(Marshal.dump(aState))
-      testState = updateBoard(x0, y0, x, y, testBoard)
-
+      testState = checkState(aState, m)
       score = -(negamax(testState, depth + 1, -color, beginTime, maxSearchDepth))
       if score > bestValue
         bestValue = score
@@ -449,28 +434,23 @@ class State
     y0 = aMove.decode('from')[1]
     x  = aMove.decode('to')[0]
     y  = aMove.decode('to')[1]
-    updateBoard(x0, y0, x, y, testBoard)
-    return testBoard
+    updatedState = updateBoard(x0, y0, x, y, testBoard)
+    return updatedState
   end
 
   def scoreGen(aMove=nil, aState=nil)
   # Returns the score of a state the will exist if the given move is executed.
   # The score value is the score of the state that the opponent will receive,
   # so the lower the number the 'better' for the side onMove
-
-    if aMove != nil and aState == nil
-      testBoard = checkState(@board, aMove)
-    end
-
-    if aMove == nil and aState != nil
-      testBoard = Marshal.load(Marshal.dump(aState))
+    if aMove != nil and aState == nil         # Used for human moves
+      aState = checkState(@board, aMove)
     end
 
     # Generate a score for this state --- enemy score - my score
     whiteScore = 0
     blackScore = 0
 
-    testBoard.flatten.each do |p|
+    aState.flatten.each do |p|
       case p
         when 'P'
           whiteScore += 100
