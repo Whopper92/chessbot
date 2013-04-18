@@ -1,0 +1,69 @@
+Assignment II Reflection - Will Hopper
+
+This portion of the chess engine assignment, as opposed to the first section,
+definitely demonstrated just how slow Ruby is at large recursive operations when compared
+to a statically compiled language like C++. Despite this realization, much was learned
+while implementing the score generator, negamax and iterative deepening functionality.
+
+1) The score generator
+
+My implementation of the score generation method is pretty simple. I simply
+scan a given state for pieces and keep a count for white score and another for
+black score. Black pieces are worth negative points, while white pieces are
+worth positive points. I then simply add them together to get a single score
+value for the state. Outside of negamax, positive values are obviously good
+for the white player.
+
+2) Negamax
+
+My negamax method implementation is also fairly standard, or at least close to
+the pseudo-code.
+
+A cool debugging tool that I used to fix a few subtle yet show-stopping bugs
+was a set of print statements that created a visual representation of move
+prediction. So, a move that white was thinking about would show up as:
+
+White is taking move a1-a2 ---> -100
+    Black is taking move b3-a2 ---> 300
+      White is taking move c1-a2 ---> -100
+
+... and so on. This enabled me to see how my score generator was interacting
+with the various levels of depth in negamax. It's a cool tree to scan for
+general stupidity while trying to up the bot's game.
+
+3) Iterative deepening
+
+I have a feeling that the "right" way to stop the negamax recursive call is
+with some sort of signal interrupt. Unfortunately, I ran out of time to figure
+out how to do that in Ruby, so I settled for a simple time argument that keeps
+track of time inside of negamax, and stops as soon as time is up.
+
+4) Problems and issues
+
+Although my negamax implementation is working well given enough time, the one
+second limit has really shown the weakness of my Ruby implementation. A few friends
+of mine are coding with more or less the same algorithms in languages like Java and
+C++, and are getting at least 90,000 states checked per second. My similar Ruby
+implementation can only reach 12,000 in the same time. This is a rather disconcerting
+finding, obviously. In response to this discovery, I immediately went back and
+optimized the negamax method and surrounding functionality as best I could, but was
+only able to gain an additional 2,000 nodes per second. Of course, there are more
+optimizations that I could possibly make that would be non-trivial, but I actually
+believe this is simply a problem of the wrong tool for the job. As I said in Homework I,
+I chose Ruby because I want to learn the language better and I greatly enjoy it.
+Luckily, I am still able to learn and implement the same Advanced AI concepts as anyone
+else, but my results are much slower.
+
+A finding that I found rather interesting was some research on benchmarks between
+Java, Ruby, C++ and other languages. An identical, computationally expensive algorithm took Java about
+1.6 microseconds per iteration, while Ruby took 380 (see
+http://blog.dhananjaynene.com/2008/07/performance-comparison-c-java-python-ruby-jython-jruby-groovy/)
+
+Optimized C++ took "approximately 0 ms" which I find absolutely fascinating.
+
+Other sources report that Ruby is, on average, about "28 times slower" than C++,
+which in consistent with my ~30 seconds required to reach about 300,000 nodes to
+my friend coding in C++ getting that many in one second.
+
+If I had the time, I would be very, very interested to code my exact algorithms in
+C++ and see what kind of performance I could get.
