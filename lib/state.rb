@@ -7,12 +7,13 @@ require File.expand_path('../exceptions.rb', __FILE__)
 class State
 
   def initialize
-    @maxTurns       = 80
-    @maxSearchTime  = 1                    # Time limit for negamax move search
-    @onMove         = "W"
-    @turnCount      = 0
+    @maxTurns        = 80
+    @maxSearchTime   = 1        # Time limit for negamax move search
+    @onMove          = "W"
+    @OnMoveInt       = 1        # Used for negamax negation
+    @turnCount       = 0
     newBoard
-    @allMoves       = findAllMoves(@board) # A list of all valid moves from this state
+    @allMoves       = findPlayerMoves(@board, @onMoveInt) # A list of all valid moves from this state
   end
 
   def printBoard
@@ -35,6 +36,7 @@ class State
   # Reset all piece locations to create fresh board
 
     @onMove          = 'W'
+    @onMoveInt       = 1
     @turnCount       = 0
     @whiteKingSym    = 'K'
     @whiteQueenSym   = 'Q'
@@ -83,7 +85,7 @@ class State
     y += 1
     z -= 1
     end
-    @allMoves = findAllMoves(@board) # Update valid move list
+    @allMoves = findPlayerMoves(@board, @onMoveInt) # Update valid move list
   end
 
   def updateBoard(x0, y0, x, y, aState)
@@ -111,7 +113,7 @@ class State
     while gameOver?(@board) == false do
       botMove(depth)
       printBoard
-      #depth == 2 ? depth =  : depth = 2
+      depth == 2 ? depth = 3 : depth = 2
     end
   end
 
@@ -151,7 +153,7 @@ class State
 
     @onMove == 'W' ? color = 1 : color = -1
     @nodes = 0
-    maxSearchDepth = 1                                     # Start at search depth 1
+    maxSearchDepth = 2                                     # Start at search depth 1
     beginning   = Time.now
     currentTime = Time.now - beginning
 
@@ -159,7 +161,6 @@ class State
       currentTime = Time.now - beginning
       negamax(@board, 0, color, beginning, maxSearchDepth)
       #puts "Reached depth: #{maxSearchDepth}"
-      #puts @bestMove
       maxSearchDepth += 1                                  # Search another level if we have time
     end
     puts "\nChecked #{@nodes} nodes in #{Time.now - beginning} seconds.\n\n"
@@ -170,8 +171,9 @@ class State
   def humanMove(mvString)
   # Accept a move string as an argument and attempts to make the move, if valid
     humanMove = decodeMvString(mvString)
-    scoreGen(humanMove, nil)
     move(humanMove)
+    score = scoreGen(@board)
+    puts score
   end
 
   def moveScan(x0, y0, dx, dy, stopShort, capture, aState)
@@ -199,7 +201,6 @@ class State
       moves << validMove
       break if stopShort == true
     end
-
     return moves if moves != []
   end
 
@@ -329,9 +330,10 @@ class State
     # is used to generate all valid moves for either player at a given state
 
     currentTime = Time.now - beginTime
-    @nodes += 1 if depth > maxSearchDepth or currentTime >= @maxSearchTime
-    return color * scoreGen(nil, aState) if gameOver?(aState) or
-           depth > maxSearchDepth or currentTime >= @maxSearchTime
+    if gameOver?(aState) or depth > maxSearchDepth or currentTime >= @maxSearchTime
+      @nodes += 1
+      return color * scoreGen(aState)
+    end
 
     bestValue  = -20000
     stateMoves = findPlayerMoves(aState, color)
@@ -358,40 +360,31 @@ class State
   # Accepts arguments of type move and type state. If the move is valid, this method
   # returns a new state. Invalid moves result in an exception
     isValid = false
-    @allMoves.each do |x|
-      x.each do |y|
-        isValid = true if y.to_s[/#{aMove}/]
-      end
+    @allMoves.flatten.each do |m|
+      isValid = true if m.to_s[/#{aMove}/]
     end
     begin
       if isValid == true
         pos = aMove.decode('from')
         to  = aMove.decode('to')
-        if (@board[pos[1]][pos[0]].upcase == @board[pos[1]][pos[0]] and @onMove == 'W') or # Valid white move
-           (@board[pos[1]][pos[0]].upcase != @board[pos[1]][pos[0]] and @onMove == 'B') # Valid black move
-              updateBoard(pos[0], pos[1], to[0], to[1], @board)
-              @allMoves = findAllMoves(@board)  # update the valid move list
-              @turnCount = @turnCount.to_i + 1
-              @onMove == 'W' ? @onMove = 'B' : @onMove = 'W'
-        else # Player moving out of order - throw exception
-          raise WrongPlayerError
-        end
+        updateBoard(pos[0], pos[1], to[0], to[1], @board)
+        @onMove == 'W' ? @onMove = 'B' : @onMove = 'W'
+        @onMove == 'W' ? @onMoveInt = 1 : @onMoveInt = -1
+        @allMoves = findPlayerMoves(@board, @onMoveInt)  # update the valid move list
+        @turnCount = @turnCount.to_i + 1
       else # an invalid move
         raise InvalidMoveError
       end
-
-      rescue WrongPlayerError => e
-       puts "Encountered a move from the wrong player. Ignoring and maintaining current state."
 
       rescue InvalidMoveError => e
         puts "Encountered an invalid move. Ignoring and maintaining current state."
     end
   end
 
-  def findAllMoves(aState)
-  # Return an array of every single move possible for any given state, regardless of color
-    moves      = []
-    checkState = []
+  def findPlayerMoves(aState, color)
+  # Accepts a 1 for white or -1 for black and returns a list of valid moves for that player
+    moves            = []
+    validPlayerMoves = []
 
     for y in 0..5
       for x in 0..4
@@ -399,17 +392,7 @@ class State
       end
     end
 
-    moves.each do |a|
-      checkState << a if a != [] and a != nil
-    end
-    return checkState
-  end
-
-  def findPlayerMoves(aState, color)
-  # Accepts a 1 for white or -1 for black and returns a list of valid moves for that player
-    validPlayerMoves = []
-    allValidMoves = findAllMoves(aState)
-    allValidMoves.flatten.each do |m|
+    moves.flatten.each do |m|
       if m != nil and m != []
         x = m.decode('from')[0]
         y = m.decode('from')[1]
@@ -438,13 +421,10 @@ class State
     return updatedState
   end
 
-  def scoreGen(aMove=nil, aState=nil)
+  def scoreGen(aState)
   # Returns the score of a state the will exist if the given move is executed.
   # The score value is the score of the state that the opponent will receive,
   # so the lower the number the 'better' for the side onMove
-    if aMove != nil and aState == nil         # Used for human moves
-      aState = checkState(@board, aMove)
-    end
 
     # Generate a score for this state --- enemy score - my score
     whiteScore = 0
@@ -457,7 +437,7 @@ class State
         when 'Q'
           whiteScore += 900
         when 'K'
-          whiteScore += 1000
+          whiteScore += 10000
         when 'B'
           whiteScore += 300
         when 'N'
@@ -469,7 +449,7 @@ class State
         when 'q'
           blackScore -= 900
         when 'k'
-          blackScore -= 1000
+          blackScore -= 10000
         when 'b'
           blackScore -= 300
         when 'n'
