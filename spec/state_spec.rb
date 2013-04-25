@@ -37,7 +37,7 @@ describe State do
   describe '#initialize' do
     it 'should initialize a new board array' do
       @aState.should be_an_instance_of State
-      @aState.instance_variable_get(:@maxTurns).should == 80
+      @aState.instance_variable_get(:@maxTurns).should == 81
     end
   end
 
@@ -250,7 +250,7 @@ describe State do
     end
 
     it 'should return true if the move count exceeds the maximum number of moves' do
-      @aState.instance_variable_set :@turnCount, 81
+      @aState.instance_variable_set :@turnCount, 82
       @aState.gameOver?((@aState.instance_variable_get(:@board))).should == true
     end
 

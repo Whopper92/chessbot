@@ -6,14 +6,17 @@ require File.expand_path('../exceptions.rb', __FILE__)
 
 class State
 
+  attr_reader :onMove, :winner, :board
+
   def initialize
-    @maxTurns        = 80
-    @maxSearchTime   = 1        # Time limit for negamax move search
+    @maxTurns        = 81
+    @maxSearchTime   = 2        # Time limit for negamax move search
     @onMove          = "W"
     @OnMoveInt       = 1        # Used for negamax negation
-    @turnCount       = 0
+    @turnCount       = 1
+    @winner          = ''
     newBoard
-    @allMoves       = findPlayerMoves(@board, @onMoveInt) # A list of all valid moves from this state
+    @allMoves        = findPlayerMoves(@board, @onMoveInt) # A list of all valid moves from this state
   end
 
   def printBoard
@@ -160,12 +163,12 @@ class State
     while currentTime < @maxSearchTime
       currentTime = Time.now - beginning
       negamax(@board, 0, color, beginning, maxSearchDepth)
-      #puts "Reached depth: #{maxSearchDepth}"
       maxSearchDepth += 1                                  # Search another level if we have time
     end
-    puts "\nChecked #{@nodes} nodes in #{Time.now - beginning} seconds.\n\n"
-    puts @bestMove
+    #puts "\nChecked #{@nodes} nodes in #{Time.now - beginning} seconds.\n\n"
+    #puts @bestMove
     move(@bestMove)
+    return @bestMove
   end
 
   def humanMove(mvString)
@@ -490,7 +493,14 @@ class State
       wKing = true if s.to_s == 'K'
       bKing = true if s.to_s == 'k'
     end
-    if not wKing or not bKing or @turnCount > @maxTurns
+    if not wKing
+      @winner = 'B wins'
+      return true
+    elsif not bKing
+      @winner = 'W wins'
+      return true
+    elsif @turnCount > @maxTurns
+      @winner = 'Draw'
       return true
     else
       return false
@@ -524,5 +534,48 @@ class State
       newMove = Move.new(Square.new(x0, y0), Square.new(x, y))
       return newMove
     end
+  end
+
+=begin
+  def tourneyPlay
+  # For use with Bart's IMCS server
+    botColor   = ARGV[0]
+    depth = 3
+    #puts "entering game loop..."
+    # Game loop
+    while gameOver?(@board) == false do
+      if @onMove == botColor
+        myMove = botMove(depth)
+        toPrint = myMove.to_s
+        toPrint.insert(0, "! ")
+        print toPrint
+      else
+        input = $stdin.gets
+        input = input.chomp
+        input = input[2..-1]
+        newMove = decodeMvString(input)
+        move(newMove)
+      end
+    end
+    puts "= #{@winner}"
+  end
+=end
+
+  def tourneyGetMove(mvString)
+  # Accepts move string from server, decodes and updates the state
+    mvString.chomp!
+    mvString = mvString[2..-1]
+    newMove  = decodeMvString(mvString)
+    move(newMove)
+    #printBoard
+  end
+
+  def tourneySendMove
+  # Prepares a move string to send to the server
+    myMove  = botMove(1)
+    toPrint = myMove.to_s
+    toPrint.insert(0, "! ")
+    #printBoard
+    return toPrint
   end
 end
