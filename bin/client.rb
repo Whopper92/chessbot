@@ -34,7 +34,8 @@ class Client
 
   def accept(gameID)
   # Accept an existing game on the server if game id specified in argument
-    @imcs.cmd("accept #{gameID}")
+    @imcs.cmd("accept #{gameID}") {|c| print c }
+    gameLoop
   end
 
   def playGame
@@ -57,22 +58,39 @@ class Client
   def gameLoop
   # The main game loop
     @state = State.new
+    turn = 0
 
     while @state.gameOver?(@state.board) == false do
       if @state.onMove.to_s == @color
-        @imcs.waitfor("Match" => /\? /).each do |line|
-          puts line
+        puts "It is my move!!!!!"
+
+        if turn == 0
+          @imcs.waitfor("Match" => /\? /).each do |line|
+            puts line
+          end
+
+          newMove = @state.tourneySendMove
+          @imcs.cmd("#{newMove}") { |c| print c }
+          puts "I just moved"
+          turn += 1
+
+        else
+ 
+          newMove = @state.tourneySendMove
+          puts "newMove: #{newMove}"
+          @imcs.cmd("#{newMove}") { |c| print c }
+          puts "I just moved"
         end
-        makeMove
       else
-        puts "waiting"
-        @imcs.waitfor("Match" => /\? /).each do |line|
-          @move = line if line =~ /! .{2}-.{2}/
-        end
-        getMove(@move)
+          puts "waiting"
+          @imcs.waitfor("Match" => /\? /).each do |line|
+            @move = line if line =~ /! .{2}-.{2}/
+          end
+          @state.tourneyGetMove(@move)
       end
     end
-    puts "= #{@board.winner}"
+
+    puts "= #{@state.winner}"
   end
 
   def makeMove
@@ -83,7 +101,6 @@ class Client
   end
 
   def getMove(move)
-    @state.tourneyGetMove(move)
   end
 
   def endGame
