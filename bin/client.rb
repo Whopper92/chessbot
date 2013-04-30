@@ -39,15 +39,17 @@ class Client
   end
 
   def playGame
-    puts "Enter 'offer <color>, <time>' or 'accept <game ID>':"
+    puts "Enter 'offer <color>, <time>' or 'accept <game ID> <color>':"
     option = gets
     if option.match('offer')
       @color = option[6].chr
-      time  = option[8..-1]
+      time   = option[8..-1]
       self.connect
       offer(time)
     elsif option.match('accept')
-      gameID = option[7..-1]
+      option = option.chomp!
+      gameID = option[7..11]
+      @color = option[-1].chr
       self.connect
       accept(gameID)
     else
@@ -63,23 +65,14 @@ class Client
     while @state.gameOver?(@state.board) == false do
       if @state.onMove.to_s == @color
         puts "It is my move!!!!!"
-
-        if turn == 0
-          @imcs.waitfor("Match" => /\? /).each do |line|
-            puts line
-          end
-
+        if turn == 0 and @color == 'W'
+          @imcs.waitfor("Match" => /\? /)
           newMove = @state.tourneySendMove
           @imcs.cmd("#{newMove}") { |c| print c }
-          puts "I just moved"
           turn += 1
-
         else
- 
           newMove = @state.tourneySendMove
-          puts "newMove: #{newMove}"
           @imcs.cmd("#{newMove}") { |c| print c }
-          puts "I just moved"
         end
       else
           puts "waiting"
@@ -91,19 +84,5 @@ class Client
     end
 
     puts "= #{@state.winner}"
-  end
-
-  def makeMove
-    # Send a move string to the server
-    newMove = @state.tourneySendMove
-    puts "newMove: #{newMove}"
-    @imcs.cmd("#{newMove}") { |c| print c }
-  end
-
-  def getMove(move)
-  end
-
-  def endGame
-    @imcs.close
   end
 end
