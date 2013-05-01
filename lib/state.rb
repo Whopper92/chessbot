@@ -10,7 +10,7 @@ class State
 
   def initialize
     @maxTurns        = 81
-    @maxSearchTime   = 2        # Time limit for negamax move search
+    @maxSearchTime   = 5        # Time limit for negamax move search
     @onMove          = "W"
     @OnMoveInt       = 1        # Used for negamax negation
     @turnCount       = 1
@@ -155,15 +155,19 @@ class State
   # Finds the bests move for the bot given some time constraint and executes said move
 
     @onMove == 'W' ? color = 1 : color = -1
-    @nodes = 0
-    maxSearchDepth = 2                                     # Start at search depth 1
-    beginning   = Time.now
-    currentTime = Time.now - beginning
+    @nodes         = 0
+    @curBestScore  = -20000
+    maxSearchDepth = 1                                     # Start at search depth 1
+    beginning      = Time.now
+    currentTime    = Time.now - beginning
 
     while currentTime < @maxSearchTime
+      #puts "Current Best Score: #{@curBestScore}"
       currentTime = Time.now - beginning
-      negamax(@board, 0, color, beginning, maxSearchDepth)
+      depthScore = negamax(@board, 0, color, beginning, maxSearchDepth)
+      @curBestScore = depthScore if depthScore > @curBestScore
       maxSearchDepth += 1                                  # Search another level if we have time
+      #puts "Current best Move: #{@bestMove}"
     end
     #puts "\nChecked #{@nodes} nodes in #{Time.now - beginning} seconds.\n\n"
     #puts @bestMove
@@ -351,10 +355,17 @@ class State
       #      puts "            #{bugCol}: I am trying move:  #{m}---> #{bestValue}" if depth == 3
       testState = checkState(aState, m)
       score = -(negamax(testState, depth + 1, -color, beginTime, maxSearchDepth))
-      if score > bestValue
+      if score >= bestValue
         bestValue = score
-        @bestMove = m if depth == 0
+        @bestMove = m if bestValue > @curBestScore and depth == 0
       end
+      # Useful debugging info. Append to a file to check calls
+      #      puts "#{bugCol}: I am trying move: #{m}--->" if depth == 0
+      #      puts "    #{bugCol}: I am trying move:  #{m}---> #{bestValue}" if depth == 1
+      #      puts "        #{bugCol}: I am trying move:  #{m}---> #{bestValue}" if depth == 2
+      #      puts "            #{bugCol}: I am trying move:  #{m}---> #{bestValue}" if depth == 3
+
+
     end
     return bestValue
   end
@@ -535,31 +546,6 @@ class State
       return newMove
     end
   end
-
-=begin
-  def tourneyPlay
-  # For use with Bart's IMCS server
-    botColor   = ARGV[0]
-    depth = 3
-    #puts "entering game loop..."
-    # Game loop
-    while gameOver?(@board) == false do
-      if @onMove == botColor
-        myMove = botMove(depth)
-        toPrint = myMove.to_s
-        toPrint.insert(0, "! ")
-        print toPrint
-      else
-        input = $stdin.gets
-        input = input.chomp
-        input = input[2..-1]
-        newMove = decodeMvString(input)
-        move(newMove)
-      end
-    end
-    puts "= #{@winner}"
-  end
-=end
 
   def tourneyGetMove(mvString)
   # Accepts move string from server, decodes and updates the state

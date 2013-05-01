@@ -15,7 +15,7 @@ class Client
 
     server = 'imcs.svcs.cs.pdx.edu'
     port   =  3589
-    user   = 'whopper'
+    user   = 'rooky'
     pass   = 'chess'
     @imcs   = Net::Telnet::new("Host"       => server,
                                "Port"       => port,
@@ -66,7 +66,9 @@ class Client
       if @state.onMove.to_s == @color
         puts "It is my move!!!!!"
         if turn == 0 and @color == 'W'
-          @imcs.waitfor("Match" => /\? /)
+          @imcs.waitfor("Match" => /\? /).each do |line|
+            puts line
+          end
           newMove = @state.tourneySendMove
           @imcs.cmd("#{newMove}") { |c| print c }
           turn += 1
@@ -77,6 +79,7 @@ class Client
       else
           puts "waiting"
           @imcs.waitfor("Match" => /\? /).each do |line|
+            puts line
             @move = line if line =~ /! .{2}-.{2}/
           end
           @state.tourneyGetMove(@move)
