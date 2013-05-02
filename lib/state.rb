@@ -10,7 +10,7 @@ class State
 
   def initialize
     @maxTurns        = 81
-    @maxSearchTime   = 5        # Time limit for negamax move search
+    @maxSearchTime   = 1        # Time limit for negamax move search
     @onMove          = "W"
     @OnMoveInt       = 1        # Used for negamax negation
     @turnCount       = 1
@@ -54,6 +54,16 @@ class State
     @blackKnightSym  = 'n'
     @blackRookSym    = 'r'
     @blackPawnSym    = 'p'
+=begin
+    @board = [
+      ['.', '.', 'K', '.', '.'],
+      ['.', '.', '.', '.', '.'],
+      ['.', '.', '.', '.', '.'],
+      ['.', '.', '.', 'N', '.'],
+      ['.', 'p', '.', '.', 'p'],
+      ['k', '.', '.', '.', '.']
+    ]
+=end
     @board = [
       ['R', 'N', 'B', 'Q', 'K'],
       ['P', 'P', 'P', 'P', 'P'],
@@ -62,6 +72,7 @@ class State
       ['p', 'p', 'p', 'p', 'p'],
       ['k', 'q', 'b', 'n', 'r']
     ]
+  printBoard
   end
 
   def getState
@@ -151,26 +162,47 @@ class State
     end
   end
 
+  def max(a, b)
+  # Returns the maximum of two integers
+    if b > a
+      return b
+    else
+      return a
+    end
+  end
+
   def botMove(depth)
   # Finds the bests move for the bot given some time constraint and executes said move
 
     @onMove == 'W' ? color = 1 : color = -1
     @nodes         = 0
-    @curBestScore  = -20000
-    maxSearchDepth = 1                                     # Start at search depth 1
+    d0             = 4                                     # Start at search depth 1
+    m0             = nil
     beginning      = Time.now
     currentTime    = Time.now - beginning
 
-    while currentTime < @maxSearchTime
-      #puts "Current Best Score: #{@curBestScore}"
+#    while currentTime < @maxSearchTime
       currentTime = Time.now - beginning
-      depthScore = negamax(@board, 0, color, beginning, maxSearchDepth)
-      @curBestScore = depthScore if depthScore > @curBestScore
-      maxSearchDepth += 1                                  # Search another level if we have time
-      #puts "Current best Move: #{@bestMove}"
-    end
-    #puts "\nChecked #{@nodes} nodes in #{Time.now - beginning} seconds.\n\n"
-    #puts @bestMove
+      #puts "Search Depth: #{maxSearchDepth}"
+
+      v  = -20000
+      a0 = -20000
+      stateMoves  = findPlayerMoves(@board, color)
+
+      stateMoves.flatten.each do |m|
+        puts "I am looking at move: #{m}" if ARGV[1] == 'debug'
+        testState      = checkState(@board, m)
+        v0             = max(v, -(negamax(testState, -color, beginning, d0, -20000, -a0)))
+        puts "Score for #{m}: #{v0}" if ARGV[1] == 'debug'
+        a0             = max(a0, v0)
+        @bestMove      = m if a0 > v
+        puts "Current Best Move: #{@bestMove} at depth: #{d0}" if ARGV[1] == 'debug'
+        v              = max(v, v0)
+      end
+#      d0 += 1
+#    end
+    puts @bestMove
+    puts "\nChecked #{@nodes} nodes in #{Time.now - beginning} seconds.\n\n"
     move(@bestMove)
     return @bestMove
   end
@@ -179,8 +211,6 @@ class State
   # Accept a move string as an argument and attempts to make the move, if valid
     humanMove = decodeMvString(mvString)
     move(humanMove)
-    score = scoreGen(@board)
-    puts score
   end
 
   def moveScan(x0, y0, dx, dy, stopShort, capture, aState)
@@ -331,43 +361,45 @@ class State
     end
   end
 
-  def negamax(aState, depth, color, beginTime, maxSearchDepth)
+  def negamax(aState, color, beginTime, depth, a, b)
     # Arguments: a board state, a starting depth, a color, a time limit, and maximum search depth
     # The color argument is taken as either 1 for white or -1 for black, and
     # is used to generate all valid moves for either player at a given state
 
     currentTime = Time.now - beginTime
-    if gameOver?(aState) or depth > maxSearchDepth or currentTime >= @maxSearchTime
+    if gameOver?(aState) or depth == 0
       @nodes += 1
-      return color * scoreGen(aState)
+      puts "      I am a leaf with score: #{scoreGen(aState, color)}" if ARGV[1] == 'debug'
+      return scoreGen(aState, color)
     end
 
-    bestValue  = -20000
+#    return 20000 if currentTime >= @maxSearchTime
+
+    v  = -20000
+    #a0 = a
     stateMoves = findPlayerMoves(aState, color)
     color == 1 ? bugCol = 'white' : bugCol = 'black'
 
     stateMoves.flatten.each do |m|
       @nodes += 1 # Stats: determine how many states are checked
+      if ARGV[1] == 'debug'
       # Useful debugging info. Append to a file to check calls
-      #      puts "#{bugCol}: I am trying move: #{m}--->" if depth == 0
-      #      puts "    #{bugCol}: I am trying move:  #{m}---> #{bestValue}" if depth == 1
-      #      puts "        #{bugCol}: I am trying move:  #{m}---> #{bestValue}" if depth == 2
-      #      puts "            #{bugCol}: I am trying move:  #{m}---> #{bestValue}" if depth == 3
-      testState = checkState(aState, m)
-      score = -(negamax(testState, depth + 1, -color, beginTime, maxSearchDepth))
-      if score >= bestValue
-        bestValue = score
-        @bestMove = m if bestValue > @curBestScore and depth == 0
+            puts "#{bugCol}: PRIMARY: I am trying move: #{m}--->" if depth == 2
+            puts "    #{bugCol}: I am trying move:  #{m}--->" if depth == 1
+            puts "        #{bugCol}: I am trying move:  #{m}--->" if depth == 0
+            puts "            #{bugCol}: I am trying move:  #{m}--->" if depth == 3
+            puts "                #{bugCol}: I am trying move:  #{m}--->" if depth == 4
       end
-      # Useful debugging info. Append to a file to check calls
-      #      puts "#{bugCol}: I am trying move: #{m}--->" if depth == 0
-      #      puts "    #{bugCol}: I am trying move:  #{m}---> #{bestValue}" if depth == 1
-      #      puts "        #{bugCol}: I am trying move:  #{m}---> #{bestValue}" if depth == 2
-      #      puts "            #{bugCol}: I am trying move:  #{m}---> #{bestValue}" if depth == 3
-
-
+      testState = checkState(aState, m)
+      v         = max(v, -(negamax(testState, -color, beginTime, depth - 1, -b, -a)))
+      a        = max(a, v)
+      if a >= b
+        puts "Returning now because #{a} > #{b}" if ARGV[1] == 'debug'
+        return a
+      end
     end
-    return bestValue
+    puts "I am finally returning from end of negamax: #{v}" if ARGV[1] == 'debug'
+    return v
   end
 
   def move(aMove)
@@ -435,12 +467,12 @@ class State
     return updatedState
   end
 
-  def scoreGen(aState)
+  def scoreGen(aState, color)
   # Returns the score of a state the will exist if the given move is executed.
   # The score value is the score of the state that the opponent will receive,
   # so the lower the number the 'better' for the side onMove
 
-    # Generate a score for this state --- enemy score - my score
+    # Generate a score for this state --- my score - enemy
     whiteScore = 0
     blackScore = 0
 
@@ -455,23 +487,24 @@ class State
         when 'B'
           whiteScore += 300
         when 'N'
-          whiteScore += 300
+          whiteScore += 250
         when 'R'
           whiteScore += 500
         when 'p'
-          blackScore -= 100
+          blackScore += 100
         when 'q'
-          blackScore -= 900
+          blackScore += 900
         when 'k'
-          blackScore -= 10000
+          blackScore += 10000
         when 'b'
-          blackScore -= 300
+          blackScore += 300
         when 'n'
-          blackScore -= 300
+          blackScore += 250
         when 'r'
-          blackScore -= 500
+          blackScore += 500
       end
     end
+    color == 1 ? blackScore = -blackScore : whiteScore = -whiteScore
     stateScore = whiteScore + blackScore
     return stateScore
   end
