@@ -59,9 +59,9 @@ class State
       ['.', '.', 'K', '.', '.'],
       ['.', '.', '.', '.', '.'],
       ['.', '.', '.', '.', '.'],
-      ['.', '.', '.', 'N', '.'],
-      ['.', 'p', '.', '.', 'p'],
-      ['k', '.', '.', '.', '.']
+      ['.', '.', '.', 'R', '.'],
+      ['.', '.', '.', 'p', '.'],
+      ['k', '.', 'p', '.', '.']
     ]
 =end
     @board = [
@@ -72,7 +72,6 @@ class State
       ['p', 'p', 'p', 'p', 'p'],
       ['k', 'q', 'b', 'n', 'r']
     ]
-  printBoard
   end
 
   def getState
@@ -177,6 +176,7 @@ class State
     @onMove == 'W' ? color = 1 : color = -1
     @nodes         = 0
     d0             = 4                                     # Start at search depth 1
+    count          = 9
     m0             = nil
     beginning      = Time.now
     currentTime    = Time.now - beginning
@@ -190,6 +190,11 @@ class State
       stateMoves  = findPlayerMoves(@board, color)
 
       stateMoves.flatten.each do |m|
+        if count > 0
+          d0 = 4
+        else
+          d0 = 3
+        end
         puts "I am looking at move: #{m}" if ARGV[1] == 'debug'
         testState      = checkState(@board, m)
         v0             = max(v, -(negamax(testState, -color, beginning, d0, -20000, -a0)))
@@ -198,6 +203,7 @@ class State
         @bestMove      = m if a0 > v
         puts "Current Best Move: #{@bestMove} at depth: #{d0}" if ARGV[1] == 'debug'
         v              = max(v, v0)
+        count -= 1
       end
 #      d0 += 1
 #    end
@@ -475,33 +481,81 @@ class State
     # Generate a score for this state --- my score - enemy
     whiteScore = 0
     blackScore = 0
-
+    boardIndex = -1
     aState.flatten.each do |p|
+      boardIndex += 1
       case p
         when 'P'
-          whiteScore += 100
+          whiteScore += 1000
+          if boardIndex == (11..13) or boardIndex == (16..18)
+            whiteScore += 300
+          end
         when 'Q'
-          whiteScore += 900
+          whiteScore += 9000
+          if boardIndex == (11..13) or boardIndex == (16..18)
+            whiteScore += 500
+          end
         when 'K'
-          whiteScore += 10000
+          whiteScore += 100000
+          if boardIndex != 4
+            whiteScore -= 3000
+          end
         when 'B'
-          whiteScore += 300
+          if boardIndex != 2
+            whiteScore += 3500
+          else
+            whiteScore += 3000
+          end
+          whiteScore += 400 if boardIndex == (11..13)
         when 'N'
-          whiteScore += 250
+          if boardIndex != 1
+            whiteScore += 3000
+          else
+            whiteScore += 2500
+          end
+          whiteScore += 400 if boardIndex == (11..13)
         when 'R'
-          whiteScore += 500
+          if boardIndex != 0
+            whiteScore += 6000
+          else
+            whiteScore += 5000
+          end
+          whiteScore += 500 if boardIndex == (10..14)
         when 'p'
-          blackScore += 100
+          blackScore += 1000
+          if boardIndex == (11..13) or boardIndex == (16..18)
+            blackScore += 300
+          end
         when 'q'
-          blackScore += 900
+          blackScore += 9000
+          if boardIndex == (11..13) or boardIndex == (16..18)
+            blackScore += 500
+          end
         when 'k'
-          blackScore += 10000
+          blackScore += 100000
+          if boardIndex != 25
+            blackScore -= 3000
+          end
         when 'b'
-          blackScore += 300
+          if boardIndex != 27
+            blackScore += 3500
+          else
+             blackScore += 3000
+          end
+          blackScore += 400 if boardIndex == (11..13) or boardIndex == (16..18)
         when 'n'
-          blackScore += 250
+          if boardIndex != 28
+            blackScore += 3000
+          else
+            blackScore += 2500
+          end
         when 'r'
-          blackScore += 500
+          if boardIndex != 29
+            blackScore += 6000 
+          else
+            blackScore += 5000
+          end
+          blackScore += 500 if boardIndex == (15..19)
       end
     end
     color == 1 ? blackScore = -blackScore : whiteScore = -whiteScore
