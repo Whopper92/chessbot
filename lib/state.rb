@@ -516,7 +516,7 @@ class State
           whiteScore += 400 if boardIndex == (11..13)
         when 'R'
           if boardIndex != 0
-            whiteScore += 6000
+            whiteScore += 5500
           else
             whiteScore += 5000
           end
@@ -551,7 +551,7 @@ class State
           end
         when 'r'
           if boardIndex != 29
-            blackScore += 6000 
+            blackScore += 5500
           else
             blackScore += 5000
           end

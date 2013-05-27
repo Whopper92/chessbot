@@ -1,0 +1,39 @@
+Assignment III Reflection - Will Hopper
+
+This assignment definitely brought a competitive edge to my chess engine. Thanks to
+alpha beta pruning as well as my improved score evaluator, even my Ruby bot
+can be competitive online aginast its oponents.
+
+The first work I did as part of this assignment was to implement alpha
+beta functionality. It was difficult at first to understand exactly how
+the algorithm was meant to work, but once I finally managed to modify my
+negamax function enough to get AB pruning working, it made quite a lot more
+sense. The results are very real, too. Before AB pruning, my engine struggled
+to even go 3 levels deep at times in 5-7 seconds. This is not so any more, as
+it seems that I can commonly reach 4 levels deep, as such is really the limitation
+of my ruby implementation.
+
+Another unexpected modification that I was forced to make was more or less the
+temporary decommisioning of my iterative deepening functionality. Once I had
+implemented AB pruning, I found that my ID implementation had some serious faults,
+and was returning poor moves due to the fact that often it would *think* it was reaching
+4 levels deep, but only had time to go one or two. Thus, the score it would return
+was only accurate for that many levels, and the moves were poor. In my current
+implementation, I've set the engine to try and use as much time as possible to go
+3 or 4 levels deep, depending on how much time is left in the match. I've found
+that faster, non-Ruby implementations have a serious advantage in this regard, and
+as such my bot faces a constant risk of losing by time. This is the only course
+that can bring a win online, however, and it often does. As long as I can end the game
+within 20-25 moves, I do not run out of time.
+
+
+The other mos significant improvement that I added for this part of the assignment
+was the improved score generator. I was seriously blown away by how much of a
+difference this made. My new scoring heuristic accounts for positioning of
+rooks, knights, bishops, the queen and the king. As suggested, moving these pieces
+out of their home positions has been heightened in score, as have pawns and other 
+pieces moving towards the center two rows of the board. It is very interesting to
+see how much more aggressive and better these changes have made my engine. Now,
+my bot wins at least half of its matches against the bot 'Mcwurst' on the server.
+There are certainly more changes that I'd like to make, if I am able to find some
+advantaeous moves.
