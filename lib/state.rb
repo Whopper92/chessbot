@@ -58,12 +58,24 @@ class State
     @board = [
       ['.', '.', 'K', '.', '.'],
       ['.', '.', '.', '.', '.'],
+      ['.', '.', 'R', '.', '.'],
+      ['.', '.', 'p', '.', '.'],
+      ['.', '.', '.', 'p', '.'],
+      ['k', '.', '.', '.', '.']
+    ]
+=end
+
+=begin
+    @board = [
+      ['.', '.', 'K', '.', '.'],
+      ['.', '.', '.', '.', '.'],
       ['.', '.', '.', '.', '.'],
       ['.', '.', '.', 'R', '.'],
       ['.', '.', '.', 'p', '.'],
       ['k', '.', 'p', '.', '.']
     ]
 =end
+#=begin
     @board = [
       ['R', 'N', 'B', 'Q', 'K'],
       ['P', 'P', 'P', 'P', 'P'],
@@ -72,6 +84,7 @@ class State
       ['p', 'p', 'p', 'p', 'p'],
       ['k', 'q', 'b', 'n', 'r']
     ]
+#=end
   end
 
   def getState
@@ -175,6 +188,7 @@ class State
 
     @onMove == 'W' ? color = 1 : color = -1
     @nodes         = 0
+    @bestMove      = nil
     d0             = 4                                     # Start at search depth 1
     count          = 9
     m0             = nil
@@ -185,19 +199,32 @@ class State
       currentTime = Time.now - beginning
       #puts "Search Depth: #{maxSearchDepth}"
 
-      v  = -20000
-      a0 = -20000
-      stateMoves  = findPlayerMoves(@board, color)
+      v  = -100000
+      a0 = -100000
+      scoreHash = { }
+      stateMoves = findPlayerMoves(@board, color)
 
       stateMoves.flatten.each do |m|
+        testState    = checkState(@board, m)
+        result       = scoreGen(testState, color )
+        scoreHash[m] = result
+      end
+      #scoreHash.sort_by {|k,v| v}.reverse
+      #scoreHash.each {|key, value| puts "#{key} is #{value}" }
+
+   #   stateMoves  = findPlayerMoves(@board, color)
+   #   stateMoves.flatten.each do |m|
+      scoreHash.sort_by {|key, value| v}.reverse.each do |m,val|
+      #  puts "VAL: #{val}"
+        @bestMove = m if @bestMove == nil
         if count > 0
-          d0 = 4
+          d0 = 5
         else
-          d0 = 3
+          d0 = 4
         end
         puts "I am looking at move: #{m}" if ARGV[1] == 'debug'
         testState      = checkState(@board, m)
-        v0             = max(v, -(negamax(testState, -color, beginning, d0, -20000, -a0)))
+        v0             = max(v, -(negamax(testState, -color, beginning, d0, -100000, -a0)))
         puts "Score for #{m}: #{v0}" if ARGV[1] == 'debug'
         a0             = max(a0, v0)
         @bestMove      = m if a0 > v
@@ -381,12 +408,25 @@ class State
 
 #    return 20000 if currentTime >= @maxSearchTime
 
-    v  = -20000
+    v  = -100000
     #a0 = a
+
+    scoreHash = { }
     stateMoves = findPlayerMoves(aState, color)
-    color == 1 ? bugCol = 'white' : bugCol = 'black'
 
     stateMoves.flatten.each do |m|
+      testState    = checkState(aState, m)
+      result       = scoreGen(testState, color)
+      scoreHash[m] = result
+    end
+#    scoreHash.sort_by {|k,v| v}.reverse
+
+    #stateMoves = findPlayerMoves(aState, color)
+    color == 1 ? bugCol = 'white' : bugCol = 'black'
+
+    #stateMoves.flatten.each do |m|
+    scoreHash.sort_by {|k,v| v}.reverse.each do |m,val|
+
       @nodes += 1 # Stats: determine how many states are checked
       if ARGV[1] == 'debug'
       # Useful debugging info. Append to a file to check calls
@@ -398,7 +438,7 @@ class State
       end
       testState = checkState(aState, m)
       v         = max(v, -(negamax(testState, -color, beginTime, depth - 1, -b, -a)))
-      a        = max(a, v)
+      a         = max(a, v)
       if a >= b
         puts "Returning now because #{a} > #{b}" if ARGV[1] == 'debug'
         return a

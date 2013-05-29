@@ -57,6 +57,15 @@ class Client
     end
   end
 
+  def looper
+  # A loop to offer games
+    puts "here"
+    @color = 'W'
+    time   = '5:00'
+    self.connect
+    offer(time)
+  end
+
   def gameLoop
   # The main game loop
     @state = State.new
