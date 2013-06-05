@@ -10,11 +10,12 @@ class State
 
   def initialize
     @maxTurns        = 81
-    @maxSearchTime   = 1        # Time limit for negamax move search
+    @maxSearchTime   = 10        # Time limit for negamax move search
     @onMove          = "W"
     @OnMoveInt       = 1        # Used for negamax negation
     @turnCount       = 1
     @winner          = ''
+    @reachedDepth    = false
     newBoard
     @allMoves        = findPlayerMoves(@board, @onMoveInt) # A list of all valid moves from this state
   end
@@ -189,16 +190,18 @@ class State
     @onMove == 'W' ? color = 1 : color = -1
     @nodes         = 0
     @bestMove      = nil
-    d0             = 4                                     # Start at search depth 1
-    count          = 9
+    if @turnCount.to_i < 15
+      @maxSearchTime = 15
+    else
+      @maxSearchTime = 10
+    end
+    d0             = 2                                     # Start at search depth 2
     m0             = nil
     beginning      = Time.now
     currentTime    = Time.now - beginning
 
-#    while currentTime < @maxSearchTime
+    while currentTime < @maxSearchTime
       currentTime = Time.now - beginning
-      #puts "Search Depth: #{maxSearchDepth}"
-
       v  = -100000
       a0 = -100000
       scoreHash = { }
@@ -209,31 +212,24 @@ class State
         result       = scoreGen(testState, color )
         scoreHash[m] = result
       end
-      #scoreHash.sort_by {|k,v| v}.reverse
-      #scoreHash.each {|key, value| puts "#{key} is #{value}" }
 
-   #   stateMoves  = findPlayerMoves(@board, color)
-   #   stateMoves.flatten.each do |m|
       scoreHash.sort_by {|key, value| v}.reverse.each do |m,val|
-      #  puts "VAL: #{val}"
+        @reachedDepth = false
         @bestMove = m if @bestMove == nil
-        if count > 0
-          d0 = 5
-        else
-          d0 = 4
-        end
         puts "I am looking at move: #{m}" if ARGV[1] == 'debug'
         testState      = checkState(@board, m)
         v0             = max(v, -(negamax(testState, -color, beginning, d0, -100000, -a0)))
         puts "Score for #{m}: #{v0}" if ARGV[1] == 'debug'
         a0             = max(a0, v0)
-        @bestMove      = m if a0 > v
+        @bestMove      = m if a0 > v and @reachedDepth == true
         puts "Current Best Move: #{@bestMove} at depth: #{d0}" if ARGV[1] == 'debug'
         v              = max(v, v0)
-        count -= 1
+
+        currentTime = Time.now - beginning
+        break if currentTime > @maxSearchTime
       end
-#      d0 += 1
-#    end
+      d0 += 1
+    end
     puts @bestMove
     puts "\nChecked #{@nodes} nodes in #{Time.now - beginning} seconds.\n\n"
     move(@bestMove)
@@ -398,19 +394,20 @@ class State
     # Arguments: a board state, a starting depth, a color, a time limit, and maximum search depth
     # The color argument is taken as either 1 for white or -1 for black, and
     # is used to generate all valid moves for either player at a given state
-
     currentTime = Time.now - beginTime
+    if currentTime > @maxSearchTime and depth != 0
+      @reachedDepth = false
+      return 0
+    end
+
     if gameOver?(aState) or depth == 0
       @nodes += 1
+      @reachedDepth = true
       puts "      I am a leaf with score: #{scoreGen(aState, color)}" if ARGV[1] == 'debug'
       return scoreGen(aState, color)
     end
 
-#    return 20000 if currentTime >= @maxSearchTime
-
     v  = -100000
-    #a0 = a
-
     scoreHash = { }
     stateMoves = findPlayerMoves(aState, color)
 
@@ -419,12 +416,9 @@ class State
       result       = scoreGen(testState, color)
       scoreHash[m] = result
     end
-#    scoreHash.sort_by {|k,v| v}.reverse
 
-    #stateMoves = findPlayerMoves(aState, color)
     color == 1 ? bugCol = 'white' : bugCol = 'black'
 
-    #stateMoves.flatten.each do |m|
     scoreHash.sort_by {|k,v| v}.reverse.each do |m,val|
 
       @nodes += 1 # Stats: determine how many states are checked
