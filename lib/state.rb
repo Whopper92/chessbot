@@ -55,7 +55,19 @@ class State
     @blackKnightSym  = 'n'
     @blackRookSym    = 'r'
     @blackPawnSym    = 'p'
-#=begin
+
+=begin
+    @board = [
+      ['.', '.', 'K', '.', '.'],
+      ['.', '.', '.', '.', 'p'],
+      ['.', '.', '.', '.', '.'],
+      ['.', '.', '.', '.', '.'],
+      ['.', '.', '.', '.', '.'],
+      ['k', '.', '.', '.', '.']
+    ]
+=end
+
+=begin
     @board = [
       ['.', '.', 'K', '.', '.'],
       ['.', '.', '.', '.', '.'],
@@ -64,7 +76,7 @@ class State
       ['.', '.', '.', 'p', '.'],
       ['k', '.', '.', '.', '.']
     ]
-#=end
+=end
 
 =begin
     @board = [
@@ -76,7 +88,8 @@ class State
       ['k', '.', 'p', '.', '.']
     ]
 =end
-=begin
+
+#=begin
     @board = [
       ['R', 'N', 'B', 'Q', 'K'],
       ['P', 'P', 'P', 'P', 'P'],
@@ -85,7 +98,7 @@ class State
       ['p', 'p', 'p', 'p', 'p'],
       ['k', 'q', 'b', 'n', 'r']
     ]
-=end
+#=end
   end
 
   def getState
@@ -195,39 +208,26 @@ class State
 #    else
 #      @maxSearchTime = 10
 #    end
-    d0             = 2                                     # Start at search depth 2
+    d0             = 6                                     # Start at search depth 2
     m0             = nil
     beginning      = Time.now
     currentTime    = Time.now - beginning
 
-    while currentTime < @maxSearchTime
+#    while currentTime < @maxSearchTime
       currentTime = Time.now - beginning
       v  = -100000
       a0 = -100000
       scoreHash = { }
       stateMoves = findPlayerMoves(@board, color)
-
-      stateMoves.flatten.each do |m|
-
-        toPiece = move(m, @board)
-        result       = scoreGen(@board, color)
-        scoreHash[m] = result
-
-        if toPiece == '.'
-          capPiece = nil
-        else
-          capPiece = toPiece
-        end
-        unMove(m, capPiece, @board)
-      end
+      scoreHash = sortMoves(stateMoves, color, @board)
 
       scoreHash.sort_by {|key, value| v}.reverse.each do |m,val|
         @reachedDepth = false
         @bestMove = m if @bestMove == nil
         puts "I am looking at move: #{m}" if ARGV[1] == 'debug'
 
-        toPiece = move(m, @board)
-
+        fromPiece = @board[m.decode('from')[1]][m.decode('from')[0]]
+        toPiece   = move(m, @board)
         v0             = max(v, -(negamax(@board, -color, beginning, d0, -100000, -a0)))
 
         if toPiece == '.'
@@ -235,7 +235,7 @@ class State
         else
           capPiece = toPiece
         end
-        unMove(m, capPiece, @board)
+        unMove(m, fromPiece, capPiece, @board)
 
         puts "Score for #{m}: #{v0}" if ARGV[1] == 'debug'
         a0             = max(a0, v0)
@@ -245,8 +245,8 @@ class State
 
         currentTime = Time.now - beginning
         break if currentTime > @maxSearchTime
-      end
-      d0 += 1
+ #     end
+#      d0 += 1
     end
     puts @bestMove
     puts "\nChecked #{@nodes} nodes in #{Time.now - beginning} seconds.\n\n"
@@ -258,20 +258,22 @@ class State
   def humanMove(mvString)
   # Accept a move string as an argument and attempts to make the move, if valid
     humanMove = decodeMvString(mvString)
-    toPiece = move(humanMove, @board)
+    fromPiece = @board[humanMove.decode('from')[1]][humanMove.decode('from')[0]]
+    toPiece   = move(humanMove, @board)
     updateGame(@board)
-    printBoard
 
 =begin
     puts "Undoing"
     puts "toPiece: #{toPiece}"
+    puts "fromPiece: #{fromPiece}"
     if toPiece == '.'
       capPiece = nil
     else
       capPiece = toPiece
     end
-    unMove(humanMove, capPiece, @board)
+    unMove(humanMove, fromPiece, capPiece, @board)
     printBoard
+    sleep(5)
 =end
   end
 
@@ -423,6 +425,26 @@ class State
     end
   end
 
+  def sortMoves(moveArray, color, aState)
+
+    scoreHash = { }
+    moveArray.flatten.each do |m|
+
+      fromPiece    = aState[m.decode('from')[1]][m.decode('from')[0]]
+      toPiece      = move(m, aState)
+      result       = scoreGen(aState, color)
+      scoreHash[m] = result
+
+      if toPiece == '.'
+        capPiece = nil
+      else
+        capPiece = toPiece
+      end
+      unMove(m, fromPiece, capPiece, aState)
+    end
+    return scoreHash
+  end
+
   def negamax(aState, color, beginTime, depth, a, b)
     # Arguments: a board state, a starting depth, a color, a time limit, and maximum search depth
     # The color argument is taken as either 1 for white or -1 for black, and
@@ -441,14 +463,9 @@ class State
     end
 
     v  = -100000
-    scoreHash = { }
+    scoreHash  = { }
     stateMoves = findPlayerMoves(aState, color)
-
-    stateMoves.flatten.each do |m|
-      testState    = checkState(aState, m)
-      result       = scoreGen(testState, color)
-      scoreHash[m] = result
-    end
+    scoreHash  = sortMoves(stateMoves, color, aState)
 
     color == 1 ? bugCol = 'white' : bugCol = 'black'
 
@@ -463,9 +480,20 @@ class State
             puts "            #{bugCol}: I am trying move:  #{m}--->" if depth == 3
             puts "                #{bugCol}: I am trying move:  #{m}--->" if depth == 4
       end
-      testState = checkState(aState, m)
-      v         = max(v, -(negamax(testState, -color, beginTime, depth - 1, -b, -a)))
+#      testState = checkState(aState, m)
+
+      fromPiece = aState[m.decode('from')[1]][m.decode('from')[0]]
+      toPiece   = move(m, aState)
+      v         = max(v, -(negamax(aState, -color, beginTime, depth - 1, -b, -a)))
+
+      if toPiece == '.'
+        capPiece = nil
+      else
+        capPiece = toPiece
+      end
+
       a         = max(a, v)
+      unMove(m, fromPiece, capPiece, aState)
       if a >= b
         puts "Returning now because #{a} > #{b}" if ARGV[1] == 'debug'
         return a
@@ -478,12 +506,12 @@ class State
   def move(aMove, aState)
   # Accepts arguments of type move and type state. If the move is valid, this method
   # returns a new state. Invalid moves result in an exception
-    isValid = false
-    @allMoves.flatten.each do |m|
-      isValid = true if m.to_s[/#{aMove}/]
-    end
-    begin
-      if isValid == true
+#    isValid = false
+#    @allMoves.flatten.each do |m|
+#      isValid = true if m.to_s[/#{aMove}/]
+#    end
+#    begin
+#      if isValid == true
         pos = aMove.decode('from')
         to  = aMove.decode('to')
         toPiece = aState[to[1]][to[0]]
@@ -494,13 +522,13 @@ class State
         end
         updateBoard(pos[0], pos[1], to[0], to[1], aState)
         return capPiece
-      else # an invalid move
-        raise InvalidMoveError
-      end
+#      else # an invalid move
+#        raise InvalidMoveError
+#      end
 
-      rescue InvalidMoveError => e
-        puts "Encountered an invalid move. Ignoring and maintaining current state."
-    end
+#      rescue InvalidMoveError => e
+#        puts "Encountered an invalid move. Ignoring and maintaining current state."
+#    end
   end
 
   def updateGame(aState)
@@ -511,10 +539,19 @@ class State
     @turnCount = @turnCount.to_i + 1
   end
 
-  def unMove(aMove, captured, aState)
+  def unMove(aMove, movedPiece, captured, aState)
   # undoes a move without requiring a copy of the board
     to   = aMove.decode('from')
     pos  = aMove.decode('to')
+
+    # Determine if the piece needs to be depromoted
+    if aMove.decode('to')[1] == 0 and movedPiece == 'p'
+      aState[aMove.decode('to')[1]][aMove.decode('to')[0]] = 'p'
+    elsif aMove.decode('to')[1] == 5 and movedPiece == 'P'
+
+      aState[aMove.decode('to')[1]][aMove.decode('to')[0]] = 'P'
+    end
+
     updateBoard(pos[0], pos[1], to[0], to[1], aState) # Put the moved piece back
     if captured != nil
       # Put the captured piece back on the board
@@ -731,6 +768,7 @@ class State
     mvString = mvString[2..-1]
     newMove  = decodeMvString(mvString)
     move(newMove, @board)
+    updateGame(@board)
     #printBoard
   end
 
