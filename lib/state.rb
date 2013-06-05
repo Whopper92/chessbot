@@ -208,17 +208,35 @@ class State
       stateMoves = findPlayerMoves(@board, color)
 
       stateMoves.flatten.each do |m|
-        testState    = checkState(@board, m)
-        result       = scoreGen(testState, color )
+
+        toPiece = move(m, @board)
+        result       = scoreGen(@board, color)
         scoreHash[m] = result
+
+        if toPiece == '.'
+          capPiece = nil
+        else
+          capPiece = toPiece
+        end
+        unMove(m, capPiece, @board)
       end
 
       scoreHash.sort_by {|key, value| v}.reverse.each do |m,val|
         @reachedDepth = false
         @bestMove = m if @bestMove == nil
         puts "I am looking at move: #{m}" if ARGV[1] == 'debug'
-        testState      = checkState(@board, m)
-        v0             = max(v, -(negamax(testState, -color, beginning, d0, -100000, -a0)))
+
+        toPiece = move(m, @board)
+
+        v0             = max(v, -(negamax(@board, -color, beginning, d0, -100000, -a0)))
+
+        if toPiece == '.'
+          capPiece = nil
+        else
+          capPiece = toPiece
+        end
+        unMove(m, capPiece, @board)
+
         puts "Score for #{m}: #{v0}" if ARGV[1] == 'debug'
         a0             = max(a0, v0)
         @bestMove      = m if a0 > v and @reachedDepth == true
@@ -232,18 +250,29 @@ class State
     end
     puts @bestMove
     puts "\nChecked #{@nodes} nodes in #{Time.now - beginning} seconds.\n\n"
-    move(@bestMove)
+    move(@bestMove, @board)
+    updateGame(@board)
     return @bestMove
   end
 
   def humanMove(mvString)
   # Accept a move string as an argument and attempts to make the move, if valid
     humanMove = decodeMvString(mvString)
-    move(humanMove)
+    toPiece = move(humanMove, @board)
+    updateGame(@board)
     printBoard
-#    puts "Undoing"
-#    unMove(2, 3, 2, 2, 'p', @board)
-#    printBoard
+
+=begin
+    puts "Undoing"
+    puts "toPiece: #{toPiece}"
+    if toPiece == '.'
+      capPiece = nil
+    else
+      capPiece = toPiece
+    end
+    unMove(humanMove, capPiece, @board)
+    printBoard
+=end
   end
 
   def moveScan(x0, y0, dx, dy, stopShort, capture, aState)
@@ -446,7 +475,7 @@ class State
     return v
   end
 
-  def move(aMove)
+  def move(aMove, aState)
   # Accepts arguments of type move and type state. If the move is valid, this method
   # returns a new state. Invalid moves result in an exception
     isValid = false
@@ -457,17 +486,13 @@ class State
       if isValid == true
         pos = aMove.decode('from')
         to  = aMove.decode('to')
-        toPiece = @board[to[1]][to[0]]
+        toPiece = aState[to[1]][to[0]]
         if toPiece != '.'
           capPiece = toPiece
         else
           capPiece = nil
         end
-        updateBoard(pos[0], pos[1], to[0], to[1], @board)
-        @onMove == 'W' ? @onMove = 'B' : @onMove = 'W'
-        @onMove == 'W' ? @onMoveInt = 1 : @onMoveInt = -1
-        @allMoves = findPlayerMoves(@board, @onMoveInt)  # update the valid move list
-        @turnCount = @turnCount.to_i + 1
+        updateBoard(pos[0], pos[1], to[0], to[1], aState)
         return capPiece
       else # an invalid move
         raise InvalidMoveError
@@ -478,14 +503,24 @@ class State
     end
   end
 
-  def unMove(x0, y0, x, y, captured, aState)
+  def updateGame(aState)
+  # Move forward turn count and onMove, and gather new valid moves
+    @onMove == 'W' ? @onMove = 'B' : @onMove = 'W'
+    @onMove == 'W' ? @onMoveInt = 1 : @onMoveInt = -1
+    @allMoves = findPlayerMoves(aState, @onMoveInt)  # update the valid move list
+    @turnCount = @turnCount.to_i + 1
+  end
+
+  def unMove(aMove, captured, aState)
   # undoes a move without requiring a copy of the board
-    updateBoard(x0, y0, x, y, aState) # Put the moved piece back
+    to   = aMove.decode('from')
+    pos  = aMove.decode('to')
+    updateBoard(pos[0], pos[1], to[0], to[1], aState) # Put the moved piece back
     if captured != nil
       # Put the captured piece back on the board
-      aState[y0][x0] = captured
+      aState[pos[1]][pos[0]] = captured
     else
-      aState[y0][x0] = '.'
+      aState[pos[1]][pos[0]] = '.'
     end
   end
 
@@ -695,7 +730,7 @@ class State
     mvString.chomp!
     mvString = mvString[2..-1]
     newMove  = decodeMvString(mvString)
-    move(newMove)
+    move(newMove, @board)
     #printBoard
   end
 
