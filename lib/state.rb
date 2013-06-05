@@ -10,7 +10,7 @@ class State
 
   def initialize
     @maxTurns        = 81
-    @maxSearchTime   = 10        # Time limit for negamax move search
+    @maxSearchTime   = 7        # Time limit for negamax move search
     @onMove          = "W"
     @OnMoveInt       = 1        # Used for negamax negation
     @turnCount       = 1
@@ -55,7 +55,7 @@ class State
     @blackKnightSym  = 'n'
     @blackRookSym    = 'r'
     @blackPawnSym    = 'p'
-=begin
+#=begin
     @board = [
       ['.', '.', 'K', '.', '.'],
       ['.', '.', '.', '.', '.'],
@@ -64,7 +64,7 @@ class State
       ['.', '.', '.', 'p', '.'],
       ['k', '.', '.', '.', '.']
     ]
-=end
+#=end
 
 =begin
     @board = [
@@ -76,7 +76,7 @@ class State
       ['k', '.', 'p', '.', '.']
     ]
 =end
-#=begin
+=begin
     @board = [
       ['R', 'N', 'B', 'Q', 'K'],
       ['P', 'P', 'P', 'P', 'P'],
@@ -85,7 +85,7 @@ class State
       ['p', 'p', 'p', 'p', 'p'],
       ['k', 'q', 'b', 'n', 'r']
     ]
-#=end
+=end
   end
 
   def getState
@@ -190,11 +190,11 @@ class State
     @onMove == 'W' ? color = 1 : color = -1
     @nodes         = 0
     @bestMove      = nil
-    if @turnCount.to_i < 15
-      @maxSearchTime = 15
-    else
-      @maxSearchTime = 10
-    end
+#    if @turnCount.to_i < 15
+#      @maxSearchTime = 15
+#    else
+#      @maxSearchTime = 10
+#    end
     d0             = 2                                     # Start at search depth 2
     m0             = nil
     beginning      = Time.now
@@ -240,6 +240,10 @@ class State
   # Accept a move string as an argument and attempts to make the move, if valid
     humanMove = decodeMvString(mvString)
     move(humanMove)
+    printBoard
+#    puts "Undoing"
+#    unMove(2, 3, 2, 2, 'p', @board)
+#    printBoard
   end
 
   def moveScan(x0, y0, dx, dy, stopShort, capture, aState)
@@ -453,17 +457,35 @@ class State
       if isValid == true
         pos = aMove.decode('from')
         to  = aMove.decode('to')
+        toPiece = @board[to[1]][to[0]]
+        if toPiece != '.'
+          capPiece = toPiece
+        else
+          capPiece = nil
+        end
         updateBoard(pos[0], pos[1], to[0], to[1], @board)
         @onMove == 'W' ? @onMove = 'B' : @onMove = 'W'
         @onMove == 'W' ? @onMoveInt = 1 : @onMoveInt = -1
         @allMoves = findPlayerMoves(@board, @onMoveInt)  # update the valid move list
         @turnCount = @turnCount.to_i + 1
+        return capPiece
       else # an invalid move
         raise InvalidMoveError
       end
 
       rescue InvalidMoveError => e
         puts "Encountered an invalid move. Ignoring and maintaining current state."
+    end
+  end
+
+  def unMove(x0, y0, x, y, captured, aState)
+  # undoes a move without requiring a copy of the board
+    updateBoard(x0, y0, x, y, aState) # Put the moved piece back
+    if captured != nil
+      # Put the captured piece back on the board
+      aState[y0][x0] = captured
+    else
+      aState[y0][x0] = '.'
     end
   end
 

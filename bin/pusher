@@ -1,3 +1,5 @@
 #! /bin/bash
 
 git push origin master && git push projects master
+git push origin tournament && git push projects tournament
+git push origin project_branch && git push projects project_branch
