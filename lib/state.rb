@@ -2,6 +2,7 @@
 
 require File.expand_path('../square.rb', __FILE__)
 require File.expand_path('../move.rb', __FILE__)
+require File.expand_path('../zobristTable.rb', __FILE__)
 require File.expand_path('../exceptions.rb', __FILE__)
 
 class State
@@ -16,8 +17,15 @@ class State
     @turnCount       = 1
     @winner          = ''
     @reachedDepth    = false
+    @whiteZKey       = rand(10**10)
+    @blackZKey       = rand(10**10)
     newBoard
     @allMoves        = findPlayerMoves(@board, @onMoveInt) # A list of all valid moves from this state
+
+    # Take care of zobrist hashing for the transposition table
+    @zTable = ZobristTable.new
+    @stateZKey       = @zTable.getStateKey(@whiteZKey)
+    puts "Original key: #{@stateZKey}"
   end
 
   def printBoard
@@ -67,7 +75,7 @@ class State
     ]
 =end
 
-=begin
+#=begin
     @board = [
       ['.', '.', 'K', '.', '.'],
       ['.', '.', '.', '.', '.'],
@@ -76,7 +84,7 @@ class State
       ['.', '.', '.', 'p', '.'],
       ['k', '.', '.', '.', '.']
     ]
-=end
+#=end
 
 =begin
     @board = [
@@ -89,7 +97,7 @@ class State
     ]
 =end
 
-#=begin
+=begin
     @board = [
       ['R', 'N', 'B', 'Q', 'K'],
       ['P', 'P', 'P', 'P', 'P'],
@@ -98,7 +106,7 @@ class State
       ['p', 'p', 'p', 'p', 'p'],
       ['k', 'q', 'b', 'n', 'r']
     ]
-#=end
+=end
   end
 
   def getState
@@ -262,19 +270,24 @@ class State
     toPiece   = move(humanMove, @board)
     updateGame(@board)
 
-=begin
+
+#=begin
+
+    puts "Key after move: #{@stateZKey}"
     puts "Undoing"
-    puts "toPiece: #{toPiece}"
-    puts "fromPiece: #{fromPiece}"
+#    puts "toPiece: #{toPiece}"
+#    puts "fromPiece: #{fromPiece}"
     if toPiece == '.'
       capPiece = nil
     else
       capPiece = toPiece
     end
     unMove(humanMove, fromPiece, capPiece, @board)
+
+    puts "key after unmove: #{@stateZKey}"
     printBoard
-    sleep(5)
-=end
+    sleep(20)
+#=end
   end
 
   def moveScan(x0, y0, dx, dy, stopShort, capture, aState)
@@ -506,12 +519,6 @@ class State
   def move(aMove, aState)
   # Accepts arguments of type move and type state. If the move is valid, this method
   # returns a new state. Invalid moves result in an exception
-#    isValid = false
-#    @allMoves.flatten.each do |m|
-#      isValid = true if m.to_s[/#{aMove}/]
-#    end
-#    begin
-#      if isValid == true
         pos = aMove.decode('from')
         to  = aMove.decode('to')
         toPiece = aState[to[1]][to[0]]
@@ -520,15 +527,11 @@ class State
         else
           capPiece = nil
         end
+        # Update the state hash
+        @stateZKey = @zTable.updateHash(pos[0], pos[1], to[0], to[1], @whiteZKey, @blackZKey, @stateZKey)
+        puts @stateZKey
         updateBoard(pos[0], pos[1], to[0], to[1], aState)
         return capPiece
-#      else # an invalid move
-#        raise InvalidMoveError
-#      end
-
-#      rescue InvalidMoveError => e
-#        puts "Encountered an invalid move. Ignoring and maintaining current state."
-#    end
   end
 
   def updateGame(aState)
@@ -551,6 +554,8 @@ class State
 
       aState[aMove.decode('to')[1]][aMove.decode('to')[0]] = 'P'
     end
+
+    @stateZKey = @zTable.updateHash(pos[0], pos[1], to[0], to[1], @whiteZKey, @blackZKey, @stateZKey)
 
     updateBoard(pos[0], pos[1], to[0], to[1], aState) # Put the moved piece back
     if captured != nil
