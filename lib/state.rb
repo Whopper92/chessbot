@@ -475,6 +475,15 @@ class State
       return scoreGen(aState, color)
     end
 
+    # Transposition table implementation
+    tTable = ZobristTable.new
+    t = tTable.keyLookUp(aState)  # Returns an instance of type TtableEntry
+    if t != nil
+      if (t.a < t.value and t.value < t.b) or (t.a <= a and b <= t.b)
+        return t.value
+      end
+    end
+
     v  = -100000
     scoreHash  = { }
     stateMoves = findPlayerMoves(aState, color)
@@ -513,6 +522,9 @@ class State
       end
     end
     puts "I am finally returning from end of negamax: #{v}" if ARGV[1] == 'debug'
+    hash = tTable.getStateKey(aState)
+    t = TtableEntry.new(hash, d, a, b, v)
+    tTable.store(t)
     return v
   end
 

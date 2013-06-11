@@ -17,7 +17,10 @@ class ZobristTable
     end
   end
 
-  def keyLookUp(key)
+  def keyLookUp(aState)
+    # First, determine the key for the state
+    key = getStateKey(aState)
+
     yIndex = 0
     xIndex = 0
     found = false
