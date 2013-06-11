@@ -1,0 +1,43 @@
+Assignment IV Reflection - Will Hopper
+
+This assignment was by far the hardest for me in the entire
+implementation of my chess AI. I was admittedly not able to
+get my transposition tables near enough to functioning by the
+conclusion of the course. To put it in terms of software engineering,
+I spent far too much time messing around with the easier alpha beta
+pruning and score evaluator methods and did not begin work on this
+part of the implementation until it was too late. There is, of course,
+a moral to this story in the realm of software engineering, which is of
+course that one must always look ahead at the road blocks ahead in any
+given project and budget time accordingly.
+
+Even though my T-tables are not functional, I still did manage to implement
+much of the needed code. Luckily, bitwise operations in Ruby were not brand
+new to me, since I had originally set up to use bitboards for the original
+board. Of course, it feels strange doing such things in a language like Ruby,
+but it works all the same.
+
+For the size of the table, I originally decided to go with a very small
+size of 65536, due to my fear of Ruby's general lack of speed.
+
+Another problem that I ran into in this segment of the project was Ruby's
+dynamic typing. It is actually a bit disruptive and confusing when trying
+to do work like this, with large arrays of long ints and such types. It seems
+that you have to be very careful in order to avoid introducing huge bugs
+with every line of code.
+
+===========================
+Project conclusion summary:
+===========================
+
+Overall, I am quite pleased with the end result of my work on Rooky.
+Through giant speed ups thanks to alpha beta pruning, my bot can easily
+reach a depth of 5 in its negamax search, and can defeat quite a few bots
+written by classmates, some of which are written in faster languages.
+
+There are many things I would do differently, should I attempt this
+project again. For one thing, I would try writing the engine in something
+like Java and do some performance comparisons (using more or less the same
+algorithms) between this bot and the new one. Of course, I would also work hard
+to fully implement transposition tables to see what kind of performance
+increase I could get.
